@@ -1,0 +1,11 @@
+/.idea
+/.vscode
+composer.lock
+/config/local.php
+/vendor
+/runtime
+/public/uploads/*
+*.log
+.env
+
+TestController.php

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { onMounted, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import { SwitchButton, UserFilled, Setting } from "@element-plus/icons-vue";
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 
 onMounted(() => {
@@ -14,50 +16,158 @@ const handleLogout = () => {
     authStore.logout();
     router.push("/login");
 };
+
+const handleProfile = () => {
+    router.push("/profile");
+};
+
+const getPageTitle = computed(() => {
+    if (route.name === "ProjectDetail") {
+        return "项目详情";
+    }
+    if (route.name === "ProjectList") {
+        return "项目管理";
+    }
+    if (route.name === "Profile") {
+        return "个人信息";
+    }
+    return "FixNow";
+});
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col bg-gray-50">
-        <nav class="bg-white shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex">
-                        <div class="flex-shrink-0 flex items-center cursor-pointer" @click="router.push('/')">
-                            <span class="text-xl font-bold text-teal-600">MyBug</span>
-                        </div>
-                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <router-link
-                                to="/projects"
-                                class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                                active-class="border-teal-500 text-gray-900">
-                                Projects
-                            </router-link>
-                            <router-link
-                                to="/issues"
-                                class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                                active-class="border-teal-500 text-gray-900">
-                                Issues
-                            </router-link>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <span class="text-gray-700 mr-4" v-if="authStore.user">Hello, {{ authStore.user.nickname || authStore.user.username }}</span>
-                            <button
-                                @click="handleLogout"
-                                class="relative inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                Logout
-                            </button>
-                        </div>
-                    </div>
+    <el-container class="layout-container">
+        <el-header class="app-header">
+            <div class="header-left">
+                <div class="logo">
+                    <h1 class="logo-text">FixNow</h1>
+                    <span class="logo-subtitle">问题管理系统</span>
+                </div>
+                <h2 class="page-title">{{ getPageTitle }}</h2>
+            </div>
+            <div class="header-right">
+                <div class="user-info" v-if="authStore.user">
+                    <el-avatar :size="36" :icon="UserFilled" class="user-avatar" />
+                    <span class="user-name">{{ authStore.user.nickname || authStore.user.username }}</span>
+                    <el-dropdown>
+                        <span class="el-dropdown-link">
+                            <el-icon class="el-icon--right">
+                                <arrow-down />
+                            </el-icon>
+                        </span>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item @click="handleProfile">
+                                    <el-icon><Setting /></el-icon>
+                                    个人设置
+                                </el-dropdown-item>
+                                <el-dropdown-item divided @click="handleLogout">
+                                    <el-icon><SwitchButton /></el-icon>
+                                    退出登录
+                                </el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
                 </div>
             </div>
-        </nav>
-
-        <main class="flex-1 py-6">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <router-view></router-view>
-            </div>
-        </main>
-    </div>
+        </el-header>
+        <el-main class="app-main">
+            <router-view />
+        </el-main>
+    </el-container>
 </template>
+
+<style scoped>
+.layout-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    border-bottom: none;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.logo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.logo-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.logo-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 2px;
+}
+
+.page-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+    padding-left: 32px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+}
+
+.user-avatar {
+    background-color: white;
+    color: #3b82f6;
+}
+
+.user-name {
+    font-size: 14px;
+    color: white;
+    font-weight: 500;
+}
+
+.el-dropdown-link {
+    cursor: pointer;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.app-main {
+    background-color: #f8fafc;
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+}
+</style>

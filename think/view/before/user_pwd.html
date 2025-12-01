@@ -1,0 +1,80 @@
+<style>
+    html {
+        width: 100%;
+        height: 100%;
+    }
+
+    .login-box {
+        width: 500px;
+    }
+
+    .h-3r {
+        height: 3rem !important;
+    }
+
+    canvas {
+        position: absolute;
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+<canvas id="canvas"></canvas>
+<div class="container-fluid d-flex w-100 h-100 align-items-center justify-content-center">
+    <div class="login-box px-5 py-4 bg-light">
+        <form>
+            <div class="form-group mt-3">
+                <input type="password" class="form-control username" placeholder="请输入旧密码" name="oldpwd">
+            </div>
+            <div class="form-group mt-3">
+                <input type="password" class="form-control pwd" placeholder="请输入新密码" name="newpwd">
+            </div>
+            <div class="form-group mt-3">
+                <input type="password" class="form-control pwd" placeholder="请重新输入密码" name="newpassword">
+            </div>
+            <div class="form-group d-grid mt-4">
+                <button type="submit" class="btn btn-block btn-primary smt">提交</button>
+            </div>
+            <div class="h-3r d-flex align-items-center justify-content-center">
+                <span class="text-danger tips"></span>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="/assets/js/canvas_cirecle.js"></script>
+<script>
+    $('.smt').click(() => {
+        $(".tips").html('')
+        let oldpwd = $("input[name=oldpwd]").val(),
+            newpwd = $("input[name=newpwd]").val(),
+            newpassword = $("input[name=newpassword]").val();
+
+        if (!oldpwd || !newpwd || !newpassword) {
+            $(".tips").html('密码不能为空')
+            return false;
+        }
+        if (newpwd != newpassword) {
+            $(".tips").html('两次密码不一致')
+            return false;
+        }
+
+        $.ajax({
+            url: '/user/pwd',
+            type: 'post',
+            data: {
+                oldpwd,
+                newpwd,
+                newpassword
+            },
+            success: resp => {
+                if (resp.code == 1) {
+                    location.href = '/public/login'
+                } else {
+                    $('.tips').html(resp.msg)
+                }
+            },
+        })
+
+        return false;
+    })
+</script>

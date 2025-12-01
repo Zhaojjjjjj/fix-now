@@ -2,7 +2,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
 import Layout from "../views/Layout.vue";
 import ProjectList from "../views/ProjectList.vue";
-import IssueList from "../views/IssueList.vue";
+import ProjectDetail from "../views/ProjectDetail.vue";
+import Profile from "../views/Profile.vue";
 import { useAuthStore } from "../stores/auth";
 
 const router = createRouter({
@@ -28,9 +29,14 @@ const router = createRouter({
                     component: ProjectList,
                 },
                 {
-                    path: "issues",
-                    name: "IssueList",
-                    component: IssueList,
+                    path: "projects/:id",
+                    name: "ProjectDetail",
+                    component: ProjectDetail,
+                },
+                {
+                    path: "profile",
+                    name: "Profile",
+                    component: Profile,
                 },
             ],
         },

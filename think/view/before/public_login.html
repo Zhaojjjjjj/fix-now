@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- ********* CORE ********* -->
+    <link rel="stylesheet" href="/assets/css/theme.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <title>登录 - 实搜小虫</title>
+    <style>
+        html {
+            width: 100%;
+            height: 100%;
+        }
+
+        .login-box {
+            width: 500px;
+        }
+
+        .h-3r {
+            height: 3rem !important;
+        }
+
+        canvas {
+            position: absolute;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body class="w-100 h-100">
+    <canvas id="canvas"></canvas>
+    <div class="container-fluid d-flex w-100 h-100 align-items-center justify-content-center">
+        <div class="login-box px-5 py-4 bg-light">
+            <div class="text-center mb-3">
+                <img class="w-25" src="//qn1.10soo.net/assets/20220927091908.png">
+            </div>
+            <form>
+                <div class="form-group mb-3">
+                    <input type="text" class="form-control username" placeholder="请输入用户名" value="">
+                </div>
+                <div class="form-group mb-3">
+                    <input type="password" class="form-control pwd" placeholder="请输入密码">
+                </div>
+                <div class="form-group d-grid mb-3">
+                    <button type="submit" class="btn btn-block btn-primary smt">登录</button>
+                    <!-- <button type="button" class="btn btn-secondary btn-primary mt-3" id="button">注册</button> -->
+                </div>
+                <div class=" d-flex align-items-center justify-content-center">
+                    <span class="text-danger tips"></span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(() => {
+            // CHECK
+            $('.smt').click(e => {
+                $('.tips').html('')
+                let username = $(".username").val()
+                let password = $(".pwd").val()
+                if (username == "") {
+                    $('.tips').html("用户名不能为空")
+                    return false;
+                }
+                if (password == "") {
+                    $('.tips').html("密码不能为空")
+                    return false;
+                }
+
+                $(e.currentTarget).attr('disabled', 'disabled').html('登录中...')
+                $.ajax({
+                    url: '/public/login',
+                    type: "POST",
+                    data: {
+                        username,
+                        password
+                    },
+                    success: resp => {
+                        if (resp.code == 1) {
+                            location.href = "/home/list";
+                        } else {
+                            $('.tips').html(resp.msg)
+                        }
+                        $(e.currentTarget).attr('disabled', false).html('登录')
+                    },
+                })
+                return false;
+            })
+
+        })
+
+        $("#button").click(function() {
+            window.location.href = '/public/register'
+        })
+    </script>
+
+    <!-- [[[[[Canvas]]]]] -->
+    <script src="../assets/js/canvas_cirecle.js"></script>
+</body>
+
+</html>

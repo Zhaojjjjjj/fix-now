@@ -3,28 +3,17 @@ import axios from "axios";
 const api = axios.create({
     baseURL: "/api",
     timeout: 5000,
+    withCredentials: true, // 允许携带cookie
 });
-
-api.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
 
 api.interceptors.response.use(
     (response) => {
         return response.data;
     },
     (error) => {
-        if (error.response && error.response.status === 401) {
-            localStorage.removeItem("token");
+        // 如果返回登录过期，跳转到登录页
+        if (error.response?.data?.code === 0 && error.response?.data?.msg === "登录已过期") {
+            localStorage.removeItem("isLoggedIn");
             window.location.href = "/login";
         }
         return Promise.reject(error);

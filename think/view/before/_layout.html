@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link id="favicon" rel="shortcut icon" href="//qn1.10soo.net/assets/20220708162032.ico">
+
+    <!-- ********* Bootstrap ********* -->
+    <link rel="stylesheet" href="/assets/css/theme.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+
+    <link rel="stylesheet"
+          href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/3ae78e93a3.js" crossorigin="anonymous"></script>
+
+    <!-- ********** Serialize ********** -->
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery-serialize-object/2.5.0/jquery.serialize-object.min.js"
+            type="application/javascript"></script>
+
+    <title>bugs</title>
+
+</head>
+
+<body class="h-100">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="/home/list">
+            <img class="d-inline-block align-center" style="height: 30px;"
+                 src="//qn1.10soo.net/assets/20220708112238.png">
+        </a>
+
+        <?php if(!empty($data)):?>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link active" href="#">项目名称</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                    </a>
+
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <?php endif;?>
+
+        <?php if(__URL__=='issue/list'):?>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link active" href="?project_id=<?=$_GET['project_id']?>">当前问题</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link active" href="?project_id=<?=$_GET['project_id']?>&list_type=2">所有问题</a>
+                </li>
+
+            </ul>
+        </div>
+        <?php endif;?>
+
+        <ul class="navbar-nav">
+            <?php if(__URL__=='home/list' && $curUser['role_id']==1):?>
+            <li class="nav-item d-flex align-items-center me-3">
+                <a class="btn btn-sm btn-falcon-primary" href="/home/edit"><i class="las la-plus"></i> </a>
+            </li>
+            <?php endif;?>
+
+            <?php if(__URL__=='issue/list'):?>
+            <li class="nav-item d-flex align-items-center me-3">
+                <a class="btn btn-sm btn-falcon-primary" href="/issue/edit?project_id=<?=$_GET['project_id']?>"><i
+                        class="las la-plus"></i> 提Bug</a>
+            </li>
+            <?php endif;?>
+
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
+                   href="javascript:;"><?=$curUser['username']?></a>
+                <ul class="dropdown-menu">
+                    <?=$curUser['email']?>
+                    <!--<li><a class="dropdown-item" href="/user/email">绑定邮箱</a></li>-->
+                    <li><a class="dropdown-item" href="/user/pwd">修改密码</a></li>
+                    <li><a class="dropdown-item" href="/user/out">退出登录</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/user/out">退出</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+{__CONTENT__}
+
+</body>
+
+</html>

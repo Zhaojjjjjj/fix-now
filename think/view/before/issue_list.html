@@ -1,0 +1,157 @@
+<div class="container-fluid h-100 pt-4r pb-3">
+    <div class="row h-100 d-flex align-items-stretch">
+        <div class="col-7 pe-0">
+
+            <table class="table mb-0">
+                <thead class="">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col" class="text-start">标题</th>
+                        <th scope="col" class="text-center">提交人</th>
+                        <th scope="col" class="text-center">分配人</th>
+                        <th scope="col" class="text-center">状态</th>
+                        <th scope="col" class="text-center">优先级</th>
+                        <th scope="col" class="text-center">提交日期</th>
+                    </tr>
+                </thead>
+                <tbody id="list">
+                    {foreach $list as $v}
+                    <tr data-id="{$v->id}">
+                        <td scope="row">{$v->id}</td>
+                        <td>
+                            <span class="issueColor bg-<?=\app\models\Issue::TYPE_STYLE[$v['type']]?>"><?=\app\models\Issue::TYPE[$v['type']]?></span>
+                            <span style="color: #4CA1F1;margin-right: 5px;">{$v->module->name}</span>
+                            {$v->title}
+                        </td>
+                        <td class="text-center text-muted">
+                            {$v->user->username}
+                        </td>
+                        <td class="text-center">{$v->curUser->username}</td>
+                        <td class="text-center">
+                            <span class="issueColor bg-<?=\app\models\Issue::STATUS_STYLE[$v['status']]?> px-1">
+                                <?=\app\models\Issue::STATUS[$v['status']]?>
+                            </span>
+                        </td>
+                        <td class="text-center ">
+                            <span class="issueColor bg-<?=\app\models\Issue::STATUS_STYLE[$v['priority']]?>">
+                                <?=\app\models\Issue::PRIORITY[$v['priority']]?>
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <?=substr($v->created_at,5)?>
+                        </td>
+                    </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-5 h-100 ps-0" id="issueView"></div>
+    </div>
+</div>
+
+<?php if(empty($_GET['list_type'])):?>
+
+<?php else:?>
+<div class="fixed-bottom" style="padding-left: 22.5rem !important; z-index: 0">
+    {$list|raw}
+</div>
+<?php endif;?>
+
+
+<!-- ********** 处理问题弹框 ********** -->
+<div class="modal fade" id="issueModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="/issue/deal">
+                <input type="hidden" name="type" value="">
+                <input type="hidden" name="id" value="">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">备注内容</h5>
+                    <button type="button" class="btn-close button" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3 d-none" id="assignRow">
+                        <select class="form-select" id="cur_user_id" name="cur_user_id">
+                            <option hidden>指派人</option>
+                            <?php foreach($userList as $v):?>
+                            <option value="<?=$v['id']?>"><?=$v['username']?></option>
+                            <?php endforeach;?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control" name="content" rows="3" contenteditable="true"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary smt-issue">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    issueModal = new bootstrap.Modal(document.getElementById('issueModal'), {})
+</script>
+
+<script type="text/javascript">
+    var projectId = "<?=$_GET['project_id']?>"
+    var _activeTr = null,
+        issueModal;
+
+    $(() => {
+        // --------------------------------------------------
+        // 点击列表问题
+        // --------------------------------------------------
+        $("#list>tr").click((e) => {
+            _activeTr && _activeTr.find('td').removeClass("bg-white");
+
+            _activeTr = $(e.currentTarget);
+            _activeTr.find("td").addClass("bg-white");
+
+            let id = _activeTr.data("id");
+
+            $('#issueView').load("/issue/view?id=" + id);
+        });
+
+        // --------------------------------------------------
+        // 处理问题弹框
+        // --------------------------------------------------
+        $(document).on('click', '.issue-act', e => {
+            let btn = $(e.currentTarget),
+                type = btn.data('type'),
+                id = btn.parent().data('id');
+
+            $('#issueModal').find('[name=type]').val(type)
+            $('#issueModal').find('[name=id]').val(id)
+            $('#issueModal').find('[name=content]').val('')
+            $('#issueModal').find('.smt-issue').removeAttr('disabled')
+
+            if (type == 6) {
+                $('#issueModal').find('#assignRow').removeClass('d-none');
+            } else {
+                $('#issueModal').find('#assignRow').addClass('d-none');
+            }
+
+            issueModal.toggle()
+        });
+
+        // --------------------------------------------------
+        // 提交问题弹框
+        // --------------------------------------------------
+        $(document).on('click', '.smt-issue', e => {
+            let btn = $(e.currentTarget);
+
+            btn.attr('disabled', 'disabled');
+
+            $.post(btn.closest('form').attr('action'), btn.closest('form').serializeObject(), resp => {
+                if (resp.code == 1) {
+                    issueModal.toggle()
+                    $('#issueView').load("/issue/view?id=" + resp.data.id);
+
+                    location.reload()
+                }
+            })
+        })
+    });
+</script>

@@ -4,28 +4,40 @@ import api from "../api";
 export const useAuthStore = defineStore("auth", {
     state: () => ({
         user: null as any,
-        token: localStorage.getItem("token") || "",
+        isLoggedIn: localStorage.getItem("isLoggedIn") === "true",
     }),
     getters: {
-        isAuthenticated: (state) => !!state.token,
+        isAuthenticated: (state) => state.isLoggedIn,
     },
     actions: {
         async login(payload: any) {
             const res: any = await api.post("/login/login", payload);
-            this.token = res.token;
-            this.user = res.user;
-            localStorage.setItem("token", res.token);
+            if (res.code === 1) {
+                // 登录成功
+                this.isLoggedIn = true;
+                localStorage.setItem("isLoggedIn", "true");
+                await this.fetchUser();
+            } else {
+                throw new Error(res.msg || "登录失败");
+            }
         },
-        logout() {
-            this.token = "";
+        async logout() {
+            try {
+                await api.post("/login/logout");
+            } catch (e) {
+                // 忽略退出错误
+            }
+            this.isLoggedIn = false;
             this.user = null;
-            localStorage.removeItem("token");
+            localStorage.removeItem("isLoggedIn");
         },
         async fetchUser() {
-            if (this.token) {
+            if (this.isLoggedIn) {
                 try {
-                    const res: any = await api.get("/user/edit"); // Using edit endpoint to get current user as per backend
-                    this.user = res.data;
+                    const res: any = await api.get("/user/edit");
+                    if (res.code === 1) {
+                        this.user = res.data;
+                    }
                 } catch (e) {
                     this.logout();
                 }
