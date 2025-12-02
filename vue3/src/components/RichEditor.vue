@@ -42,7 +42,7 @@ const editorConfig = {
     placeholder: props.placeholder || "请输入内容...",
     MENU_CONF: {
         uploadImage: {
-            server: "/think/upload/image",
+            server: "/api/common/upload",
             fieldName: "file",
             maxFileSize: 5 * 1024 * 1024, // 5MB
             allowedFileTypes: ["image/*"],

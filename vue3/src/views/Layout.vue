@@ -2,7 +2,7 @@
 import { onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
-import { SwitchButton, UserFilled, Setting } from "@element-plus/icons-vue";
+import { SwitchButton, UserFilled, Setting, ArrowDown } from "@element-plus/icons-vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -41,7 +41,6 @@ const getPageTitle = computed(() => {
             <div class="header-left">
                 <div class="logo">
                     <h1 class="logo-text">FixNow</h1>
-                    <span class="logo-subtitle">问题管理系统</span>
                 </div>
                 <h2 class="page-title">{{ getPageTitle }}</h2>
             </div>
@@ -51,9 +50,10 @@ const getPageTitle = computed(() => {
                     <span class="user-name">{{ authStore.user.nickname || authStore.user.username }}</span>
                     <el-dropdown>
                         <span class="el-dropdown-link">
-                            <el-icon class="el-icon--right">
+                            <!-- <el-icon class="el-icon--right">
                                 <arrow-down />
-                            </el-icon>
+                            </el-icon> -->
+                            <el-icon><Setting /></el-icon>
                         </span>
                         <template #dropdown>
                             <el-dropdown-menu>

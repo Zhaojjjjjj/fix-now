@@ -345,6 +345,16 @@ const goBack = () => {
                 <el-form-item label="标题搜索">
                     <el-input v-model="filters.title" placeholder="输入标题关键字..." clearable style="width: 200px" />
                 </el-form-item>
+                <el-form-item label="指派给">
+                    <el-select v-model="filters.cur_user_id" placeholder="全部" clearable style="width: 130px" filterable>
+                        <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="报告人">
+                    <el-select v-model="filters.user_id" placeholder="全部" clearable style="width: 130px" filterable>
+                        <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
+                    </el-select>
+                </el-form-item>
                 <el-form-item label="状态">
                     <el-select v-model="filters.status" placeholder="全部状态" clearable style="width: 150px">
                         <el-option label="未修改" value="1" />

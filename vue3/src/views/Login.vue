@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DotGrid from "./DotGrid.vue";
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
@@ -41,37 +42,54 @@ const handleLogin = async (formEl: FormInstance | undefined) => {
 </script>
 
 <template>
-    <div class="login-wrapper">
-        <div class="login-box">
-            <div class="login-header">
-                <div class="logo-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8">
-                        <path
-                            fill-rule="evenodd"
-                            d="M12 2.25a.75.75 0 01.75.75v.756a49.106 49.106 0 019.152 1 .75.75 0 01-.152 1.485h-1.918l2.478 10.125a.75.75 0 01-.375.845 6.751 6.751 0 01-9.772 4.12l-.57.236a3.25 3.25 0 00-1.106 1.463l1.276 5.96a.75.75 0 01-1.463.314l-1.228-5.958a1.75 1.75 0 01.574-1.633l.57-.236a5.252 5.252 0 002.058-1.08l-6.758-6.758a.75.75 0 01.53-1.28h9a2.25 2.25 0 002.25-2.25v-.385a47.631 47.631 0 00-9.375 1 .75.75 0 01-.152-1.485V3a.75.75 0 01.75-.75zm4.5 6a.75.75 0 00-.75.75v3a.75.75 0 001.5 0v-3a.75.75 0 00-.75-.75z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <h1 class="title">FixNow</h1>
-                <p class="subtitle"></p>
-            </div>
+    <div class="dot-grid-container">
+        <DotGrid
+            :dot-size="16"
+            :gap="32"
+            base-color="#27FF64"
+            active-color="#27FF64"
+            :proximity="150"
+            :speed-trigger="100"
+            :shock-radius="250"
+            :shock-strength="5"
+            :max-speed="5000"
+            :resistance="750"
+            :return-duration="1.5"
+            class-name="custom-dot-grid" />
 
-            <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent class="login-form">
-                <el-form-item prop="username">
-                    <el-input v-model="form.username" placeholder="用户名" :prefix-icon="User" />
-                </el-form-item>
-                <el-form-item prop="password">
-                    <el-input v-model="form.password" type="password" placeholder="密码" :prefix-icon="Lock" show-password @keyup.enter="handleLogin(formRef)" />
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" :loading="loading" class="submit-btn" @click="handleLogin(formRef)"> 立即登录 </el-button>
-                </el-form-item>
-            </el-form>
+        <div class="login-wrapper">
+            <div class="login-box">
+                <div class="login-header">
+                    <div class="logo-icon">
+                        <img src="/fix.png" alt="FixNow" class="w-5rem" />
+                    </div>
+                    <h1 class="title">FixNow</h1>
+                    <p class="subtitle"></p>
+                </div>
+
+                <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent class="login-form">
+                    <el-form-item prop="username">
+                        <el-input v-model="form.username" placeholder="用户名" :prefix-icon="User" />
+                    </el-form-item>
+                    <el-form-item prop="password">
+                        <el-input v-model="form.password" type="password" placeholder="密码" :prefix-icon="Lock" show-password @keyup.enter="handleLogin(formRef)" />
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" :loading="loading" class="submit-btn" @click="handleLogin(formRef)"> 立即登录 </el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
         </div>
     </div>
 </template>
 
 <style scoped>
+.dot-grid-container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
 .login-wrapper {
     display: flex;
     justify-content: center;
