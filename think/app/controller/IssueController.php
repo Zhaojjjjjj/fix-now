@@ -26,10 +26,21 @@ class IssueController extends _Controller
         $bugType     = $this->request->get('bug_type');
         $searchIssue = $this->request->get('searchIssue');
 
+        // New filters
+        $curUserId = $this->request->get('cur_user_id');
+        $userId    = $this->request->get('user_id');
+
         $where[] = ['priority', '=', $priority];
         $where[] = ['status', '=', $status];
         $where[] = ['title', 'LIKE', '%' . $title . '%'];
         $where[] = ['project_id', '=', $this->reqPId];
+        
+        if (!empty($curUserId)) {
+            $where[] = ['cur_user_id', '=', $curUserId];
+        }
+        if (!empty($userId)) {
+            $where[] = ['user_id', '=', $userId];
+        }
         
         // 新增环境筛选
         if (!empty($environment)) {
@@ -86,6 +97,7 @@ class IssueController extends _Controller
         }
 
         $row['userList']   = User::filterWhere(['status' => 1])
+            ->withJoin('userProjectList')
             ->select();
         $row['moduleList'] = getChildren(Module::filterWhere(['status' => 1])
             ->select());
