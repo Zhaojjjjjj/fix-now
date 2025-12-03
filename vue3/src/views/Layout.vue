@@ -36,23 +36,23 @@ const getPageTitle = computed(() => {
 </script>
 
 <template>
-    <el-container class="layout-container">
-        <el-header class="app-header">
-            <div class="header-left">
-                <div class="logo">
-                    <h1 class="logo-text">FixNow</h1>
+    <el-container class="h-screen flex flex-col bg-slate-50">
+        <el-header class="bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-white/10 h-[70px] flex items-center justify-between px-8 shadow-xl relative z-50">
+            <!-- 顶部光效 -->
+            <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"></div>
+
+            <div class="flex items-center gap-8 relative z-10">
+                <div class="flex flex-col gap-0.5 cursor-pointer" @click="router.push('/')">
+                    <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 m-0 tracking-wide">FixNow</h1>
                 </div>
-                <h2 class="page-title">{{ getPageTitle }}</h2>
+                <h2 class="text-base font-medium text-slate-300 m-0 pl-8 border-l border-white/10">{{ getPageTitle }}</h2>
             </div>
-            <div class="header-right">
-                <div class="user-info" v-if="authStore.user">
-                    <el-avatar :size="36" :icon="UserFilled" class="user-avatar" />
-                    <span class="user-name">{{ authStore.user.nickname || authStore.user.username }}</span>
-                    <el-dropdown>
-                        <span class="el-dropdown-link">
-                            <!-- <el-icon class="el-icon--right">
-                                <arrow-down />
-                            </el-icon> -->
+            <div class="flex items-center gap-4 relative z-10">
+                <div class="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-md hover:bg-white/10 transition-colors duration-300" v-if="authStore.user">
+                    <el-avatar :size="32" :icon="UserFilled" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-2 border-white/20" />
+                    <span class="text-sm text-slate-200 font-medium pr-2">{{ authStore.user.nickname || authStore.user.username }}</span>
+                    <el-dropdown trigger="click">
+                        <span class="cursor-pointer text-slate-400 hover:text-white flex items-center transition-colors">
                             <el-icon><Setting /></el-icon>
                         </span>
                         <template #dropdown>
@@ -71,103 +71,12 @@ const getPageTitle = computed(() => {
                 </div>
             </div>
         </el-header>
-        <el-main class="app-main">
+        <el-main class="bg-[#f8fafc] p-6 flex-1 overflow-y-auto scroll-smooth relative">
+            <!-- 全局背景纹理 -->
+            <div class="absolute inset-0 opacity-[0.015] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px"></div>
             <router-view />
         </el-main>
     </el-container>
 </template>
 
-<style scoped>
-.layout-container {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.app-header {
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-    border-bottom: none;
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 32px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-}
-
-.logo {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.logo-text {
-    font-size: 24px;
-    font-weight: 700;
-    color: white;
-    margin: 0;
-    letter-spacing: 1px;
-}
-
-.logo-subtitle {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.8);
-    letter-spacing: 2px;
-}
-
-.page-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.95);
-    margin: 0;
-    padding-left: 32px;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 16px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    backdrop-filter: blur(10px);
-}
-
-.user-avatar {
-    background-color: white;
-    color: #3b82f6;
-}
-
-.user-name {
-    font-size: 14px;
-    color: white;
-    font-weight: 500;
-}
-
-.el-dropdown-link {
-    cursor: pointer;
-    color: white;
-    display: flex;
-    align-items: center;
-}
-
-.app-main {
-    background-color: #f8fafc;
-    padding: 24px;
-    flex: 1;
-    overflow-y: auto;
-}
-</style>
+<style scoped></style>

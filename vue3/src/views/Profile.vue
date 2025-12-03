@@ -139,25 +139,25 @@ const submitPassword = async (formEl: FormInstance | undefined) => {
 </script>
 
 <template>
-    <div class="profile-container">
+    <div class="max-w-[1200px] mx-auto">
         <el-row :gutter="24">
             <!-- 个人信息 -->
             <el-col :span="12">
                 <el-card shadow="never">
                     <template #header>
-                        <div class="card-header">
-                            <span class="card-title">个人信息</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-base font-semibold text-slate-800">个人信息</span>
                         </div>
                     </template>
-                    <div class="avatar-section">
-                        <el-avatar :size="100" :src="userForm.avatar" :icon="UserFilled" class="avatar" />
+                    <div class="flex flex-col items-center gap-4 mb-8 pb-8 border-b border-slate-100">
+                        <el-avatar :size="100" :src="userForm.avatar" :icon="UserFilled" class="bg-blue-50 text-blue-500" />
                         <el-upload :show-file-list="false" :on-change="handleAvatarUpload" :auto-upload="false" accept="image/*">
                             <el-button :loading="uploadLoading" :icon="UploadIcon" size="small">
                                 {{ uploadLoading ? "上传中..." : "更换头像" }}
                             </el-button>
                         </el-upload>
                     </div>
-                    <el-form ref="userFormRef" :model="userForm" :rules="userRules" label-width="100px" class="form-section">
+                    <el-form ref="userFormRef" :model="userForm" :rules="userRules" label-width="100px" class="mt-5">
                         <el-form-item label="用户名" prop="username">
                             <el-input v-model="userForm.username" placeholder="请输入用户名" />
                         </el-form-item>
@@ -175,11 +175,11 @@ const submitPassword = async (formEl: FormInstance | undefined) => {
             <el-col :span="12">
                 <el-card shadow="never">
                     <template #header>
-                        <div class="card-header">
-                            <span class="card-title">修改密码</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-base font-semibold text-slate-800">修改密码</span>
                         </div>
                     </template>
-                    <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="100px" class="form-section">
+                    <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="100px" class="mt-5">
                         <el-form-item label="当前密码" prop="old_password">
                             <el-input v-model="passwordForm.old_password" type="password" placeholder="请输入当前密码" show-password />
                         </el-form-item>
@@ -199,40 +199,4 @@ const submitPassword = async (formEl: FormInstance | undefined) => {
     </div>
 </template>
 
-<style scoped>
-.profile-container {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.card-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e293b;
-}
-
-.avatar-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 32px;
-    padding-bottom: 32px;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.avatar {
-    background-color: #eff6ff;
-    color: #3b82f6;
-}
-
-.form-section {
-    margin-top: 20px;
-}
-</style>
+<style scoped></style>

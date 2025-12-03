@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "../api";
-import { ArrowLeft, Plus, User, Monitor, Warning } from "@element-plus/icons-vue";
+import { ArrowLeft, Plus, Monitor, FolderOpened, ArrowDown, ArrowUp } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import RichEditor from "../components/RichEditor.vue";
@@ -19,9 +19,10 @@ interface Issue {
     bug_type?: string;
     environment?: string;
     cur_user_id?: number;
+    module_id?: number;
     user: { nickname: string };
     cur_user?: { nickname: string };
-    module?: { name: string };
+    module?: { name: string; id: number };
     created_at: string;
 }
 
@@ -30,6 +31,7 @@ interface Project {
     name: string;
     description: string;
     img_cover: string;
+    status?: number; // 1: 进行中, 2: 已归档
 }
 
 const projectId = computed(() => route.params.id as string);
@@ -40,6 +42,7 @@ const selectedIssue = ref<Issue | null>(null);
 const total = ref(0);
 const page = ref(1);
 const limit = ref(20);
+const isFilterExpanded = ref(false);
 
 const filters = ref({
     status: "",
@@ -47,6 +50,8 @@ const filters = ref({
     title: "",
     environment: "",
     bug_type: "",
+    cur_user_id: "",
+    user_id: "",
 });
 
 // 创建问题弹窗
@@ -78,9 +83,10 @@ const fetchModules = async () => {
         const res: any = await api.get("/issue/edit", {
             params: { project_id: projectId.value },
         });
+        console.log("fetchModules", res);
         if (res.code === 1) {
             modules.value = res.data.moduleList || [];
-            users.value = res.data.userList || [];
+            users.value = res.data.userList ? JSON.parse(res.data.userList) : [];
         }
     } catch (e) {
         console.error(e);
@@ -175,14 +181,132 @@ const handleAssignChange = async (userId: number) => {
     }
 };
 
+// 处理状态变更
+const handleStatusChange = async (status: number) => {
+    if (!selectedIssue.value) return;
+    try {
+        const res: any = await api.post("/issue/edit", {
+            id: selectedIssue.value.id,
+            status: status,
+        });
+        if (res.code === 1) {
+            ElMessage.success("状态更新成功");
+            fetchIssues();
+        } else {
+            ElMessage.error(res.msg || "状态更新失败");
+        }
+    } catch (e: any) {
+        ElMessage.error(e.response?.data?.msg || "状态更新失败");
+    }
+};
+
+// 处理优先级变更
+const handlePriorityChange = async (priority: number) => {
+    if (!selectedIssue.value) return;
+    try {
+        const res: any = await api.post("/issue/edit", {
+            id: selectedIssue.value.id,
+            priority: priority,
+        });
+        if (res.code === 1) {
+            ElMessage.success("优先级更新成功");
+            fetchIssues();
+        } else {
+            ElMessage.error(res.msg || "优先级更新失败");
+        }
+    } catch (e: any) {
+        ElMessage.error(e.response?.data?.msg || "优先级更新失败");
+    }
+};
+
+// 处理模块变更
+const handleModuleChange = async (moduleId: number) => {
+    if (!selectedIssue.value) return;
+    try {
+        const res: any = await api.post("/issue/edit", {
+            id: selectedIssue.value.id,
+            module_id: moduleId,
+        });
+        if (res.code === 1) {
+            ElMessage.success("模块更新成功");
+            fetchIssues();
+        } else {
+            ElMessage.error(res.msg || "模块更新失败");
+        }
+    } catch (e: any) {
+        ElMessage.error(e.response?.data?.msg || "模块更新失败");
+    }
+};
+
+// 处理Bug类型变更
+const handleBugTypeChange = async (bugType: string) => {
+    if (!selectedIssue.value) return;
+    try {
+        const res: any = await api.post("/issue/edit", {
+            id: selectedIssue.value.id,
+            bug_type: bugType,
+        });
+        if (res.code === 1) {
+            ElMessage.success("Bug类型更新成功");
+            fetchIssues();
+        } else {
+            ElMessage.error(res.msg || "Bug类型更新失败");
+        }
+    } catch (e: any) {
+        ElMessage.error(e.response?.data?.msg || "Bug类型更新失败");
+    }
+};
+
 const fetchProject = async () => {
     try {
         const res: any = await api.get("/project/list");
         if (res.code === 1) {
-            project.value = res.data.projectList.find((p: Project) => p.id === Number(projectId.value));
+            const foundProject = res.data.projectList.find((p: Project) => p.id === Number(projectId.value));
+            if (foundProject) {
+                project.value = {
+                    ...foundProject,
+                    status: foundProject.status || 1,
+                };
+            }
         }
     } catch (e) {
         console.error(e);
+    }
+};
+
+const handleArchiveProject = async () => {
+    if (!project.value) return;
+    try {
+        const res: any = await api.post("/project/editStatus", {
+            id: project.value.id,
+            status: 2,
+        });
+        if (res.code === 1) {
+            project.value.status = 2;
+            ElMessage.success("项目已归档");
+        } else {
+            ElMessage.error(res.msg || "归档失败");
+        }
+    } catch (e: any) {
+        ElMessage.error(e.response?.data?.msg || "归档失败");
+    }
+};
+
+const handleActivateProject = async () => {
+    if (!project.value) return;
+    try {
+        const res: any = await api.post("/project/editStatus", {
+            id: project.value.id,
+            status: 1,
+        });
+        if (res.code === 1) {
+            project.value.status = 1;
+            ElMessage.success("项目已重新激活");
+        } else {
+            ElMessage.error(res.msg || "激活失败");
+        }
+    } catch (e: any) {
+        ElMessage.error(e.response?.data?.msg || "激活失败");
     }
 };
 
@@ -273,7 +397,7 @@ const submitIssue = async (formEl: FormInstance | undefined) => {
 };
 
 const resetFilters = () => {
-    filters.value = { status: "", priority: "", title: "", environment: "", bug_type: "" };
+    filters.value = { status: "", priority: "", title: "", environment: "", bug_type: "", cur_user_id: "", user_id: "" };
     page.value = 1;
     fetchIssues();
 };
@@ -285,20 +409,20 @@ onMounted(() => {
 
 // Status Helper
 const getStatusTag = (status: number) => {
-    switch (status) {
-        case 1:
-            return { type: "danger", label: "未解决" };
-        case 2:
-            return { type: "warning", label: "待审核" };
-        case 8:
-            return { type: "success", label: "已关闭" };
-        default:
-            return { type: "info", label: "未知" };
-    }
-};
-
-const getPriorityTag = (priority: number) => {
-    return priority > 1 ? "danger" : "info";
+    const statusMap: Record<number, { type: string; label: string }> = {
+        1: { type: "danger", label: "未修改" },
+        2: { type: "warning", label: "未复现" },
+        3: { type: "info", label: "不是问题" },
+        4: { type: "info", label: "转下期需求" },
+        5: { type: "primary", label: "已修改" },
+        6: { type: "success", label: "已上线" },
+        7: { type: "success", label: "验收通过" },
+        8: { type: "info", label: "暂不解决" },
+        9: { type: "warning", label: "无法解决" },
+        10: { type: "warning", label: "有异议需讨论" },
+        11: { type: "info", label: "重复提交" },
+    };
+    return statusMap[status] || { type: "info", label: "未知" };
 };
 
 const getBugTypeLabel = (type: string) => {
@@ -309,6 +433,16 @@ const getBugTypeLabel = (type: string) => {
         design: "产品",
     };
     return labels[type] || type;
+};
+
+const getBugTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+        bug: "danger",
+        style: "warning",
+        experience: "info",
+        design: "success",
+    };
+    return colors[type] || "info";
 };
 
 const getEnvironmentLabel = (env: string) => {
@@ -326,196 +460,245 @@ const goBack = () => {
 </script>
 
 <template>
-    <div class="project-detail-container">
+    <div class="h-full flex flex-col">
         <!-- 页面头部 -->
-        <div class="page-header">
-            <div class="header-left">
+        <div class="flex justify-between items-start mb-5">
+            <div class="flex-1">
                 <el-button :icon="ArrowLeft" @click="goBack">返回项目列表</el-button>
-                <div class="project-info" v-if="project">
-                    <h1 class="page-title">{{ project.name }}</h1>
-                    <p class="page-subtitle">{{ project.description || "暂无项目描述" }}</p>
+                <div class="mt-3 flex items-center gap-3" v-if="project">
+                    <h1 class="text-2xl font-semibold text-slate-800 m-0 mb-1">{{ project.name }}</h1>
+                    <el-tag v-if="project.status === 2" type="info" effect="dark" size="small" round>已归档</el-tag>
+                    <p class="text-sm text-slate-500 m-0 border-l border-slate-300 pl-3 ml-3" v-if="project.description">{{ project.description }}</p>
                 </div>
             </div>
-            <el-button type="primary" :icon="Plus" size="large" @click="handleCreateIssue">提交新问题</el-button>
+            <div class="flex gap-3">
+                <el-button v-if="project?.status !== 2" type="warning" plain @click="handleArchiveProject">归档项目</el-button>
+                <el-button v-else type="success" plain @click="handleActivateProject">重新激活</el-button>
+                <el-button type="primary" :icon="Plus" size="large" @click="handleCreateIssue" :disabled="project?.status === 2">提交新问题</el-button>
+            </div>
         </div>
 
         <!-- 筛选区域 -->
-        <el-card class="filter-card" shadow="never">
-            <el-form :inline="true" :model="filters" class="filter-form">
-                <el-form-item label="标题搜索">
-                    <el-input v-model="filters.title" placeholder="输入标题关键字..." clearable style="width: 200px" />
-                </el-form-item>
-                <el-form-item label="指派给">
-                    <el-select v-model="filters.cur_user_id" placeholder="全部" clearable style="width: 130px" filterable>
-                        <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="报告人">
-                    <el-select v-model="filters.user_id" placeholder="全部" clearable style="width: 130px" filterable>
-                        <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="状态">
-                    <el-select v-model="filters.status" placeholder="全部状态" clearable style="width: 150px">
-                        <el-option label="未修改" value="1" />
-                        <el-option label="未复现" value="2" />
-                        <el-option label="不是问题" value="3" />
-                        <el-option label="转下期需求" value="4" />
-                        <el-option label="已修改" value="5" />
-                        <el-option label="已上线" value="6" />
-                        <el-option label="验收通过" value="7" />
-                        <el-option label="暂不解决" value="8" />
-                        <el-option label="无法解决" value="9" />
-                        <el-option label="有异议需讨论" value="10" />
-                        <el-option label="重复提交" value="11" />
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="开发环境">
-                    <el-select v-model="filters.environment" placeholder="全部环境" clearable style="width: 130px">
-                        <el-option label="测试环境" value="test" />
-                        <el-option label="开发环境" value="dev" />
-                        <el-option label="正式环境" value="prod" />
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="Bug类型">
-                    <el-select v-model="filters.bug_type" placeholder="全部类型" clearable style="width: 130px">
-                        <el-option label="Bug" value="bug" />
-                        <el-option label="样式问题" value="style" />
-                        <el-option label="体验问题" value="experience" />
-                        <el-option label="产品设计" value="design" />
-                    </el-select>
-                </el-form-item>
-                <el-form-item>
+        <el-card class="mb-5 border-none" shadow="never">
+            <div class="flex justify-between items-start">
+                <el-form :inline="true" :model="filters" class="filter-form flex-1 grid grid-cols-4 gap-4">
+                    <el-form-item label="标题搜索" class="mr-0 w-full">
+                        <el-input v-model="filters.title" placeholder="输入标题关键字..." clearable />
+                    </el-form-item>
+                    <el-form-item label="指派给" class="mr-0 w-full">
+                        <el-select v-model="filters.cur_user_id" placeholder="全部" clearable filterable>
+                            <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="报告人" class="mr-0 w-full">
+                        <el-select v-model="filters.user_id" placeholder="全部" clearable filterable>
+                            <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="状态" class="mr-0 w-full">
+                        <el-select v-model="filters.status" placeholder="全部状态" clearable>
+                            <el-option label="未修改" value="1" />
+                            <el-option label="未复现" value="2" />
+                            <el-option label="不是问题" value="3" />
+                            <el-option label="转下期需求" value="4" />
+                            <el-option label="已修改" value="5" />
+                            <el-option label="已上线" value="6" />
+                            <el-option label="验收通过" value="7" />
+                            <el-option label="暂不解决" value="8" />
+                            <el-option label="无法解决" value="9" />
+                            <el-option label="有异议需讨论" value="10" />
+                            <el-option label="重复提交" value="11" />
+                        </el-select>
+                    </el-form-item>
+
+                    <template v-if="isFilterExpanded">
+                        <el-form-item label="开发环境" class="mr-0 w-full">
+                            <el-select v-model="filters.environment" placeholder="全部环境" clearable>
+                                <el-option label="测试环境" value="test" />
+                                <el-option label="开发环境" value="dev" />
+                                <el-option label="正式环境" value="prod" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="Bug类型" class="mr-0 w-full">
+                            <el-select v-model="filters.bug_type" placeholder="全部类型" clearable>
+                                <el-option label="Bug" value="bug" />
+                                <el-option label="样式问题" value="style" />
+                                <el-option label="体验问题" value="experience" />
+                                <el-option label="产品设计" value="design" />
+                            </el-select>
+                        </el-form-item>
+                    </template>
+                </el-form>
+                <div class="flex gap-2 ml-4 mt-1">
                     <el-button type="primary" @click="fetchIssues">查询</el-button>
-                    <el-button @click="resetFilters" :icon="Refresh">重置</el-button>
-                </el-form-item>
-            </el-form>
+                    <el-button @click="resetFilters">重置</el-button>
+                    <el-button link type="primary" @click="isFilterExpanded = !isFilterExpanded">
+                        {{ isFilterExpanded ? "收起" : "展开" }}
+                        <el-icon class="el-icon--right"><component :is="isFilterExpanded ? ArrowUp : ArrowDown" /></el-icon>
+                    </el-button>
+                </div>
+            </div>
         </el-card>
 
         <!-- 主内容区：左右分栏 -->
-        <div class="content-layout">
+        <div class="flex gap-5 flex-1 min-h-0 items-stretch">
             <!-- 左侧：问题列表 (60%) -->
-            <div class="issue-list-panel">
-                <el-card shadow="never" :body-style="{ padding: '0' }">
-                    <div class="list-header">
-                        <span class="list-title">问题列表</span>
-                        <span class="list-count">共 {{ total }} 条</span>
+            <div class="w-3/5 flex flex-col h-full">
+                <el-card shadow="never" :body-style="{ padding: '0' }" class="h-full flex flex-col">
+                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                        <span class="text-base font-semibold text-slate-800">问题列表</span>
+                        <span class="text-sm text-slate-500">共 {{ total }} 条</span>
                     </div>
-                    <div v-loading="loading" class="issue-list">
+                    <div v-loading="loading" class="flex-1 overflow-y-auto">
                         <div
                             v-for="issue in issues"
                             :key="issue.id"
-                            class="issue-item"
-                            :class="{ active: selectedIssue?.id === issue.id, urgent: issue.priority > 1 }"
+                            class="px-4 py-2.5 border-b border-slate-100 cursor-pointer transition-all border-l-3 border-l-transparent"
+                            :class="{
+                                'bg-blue-50 border-l-blue-500': selectedIssue?.id === issue.id,
+                                'border-l-red-500 bg-red-50': issue.priority > 1,
+                                'bg-red-100': issue.priority > 1 && selectedIssue?.id === issue.id,
+                                'hover:bg-slate-50': selectedIssue?.id !== issue.id,
+                            }"
                             @click="handleSelectIssue(issue)">
-                            <div class="issue-item-main">
-                                <div class="issue-item-left">
-                                    <span class="issue-id">#{{ issue.id }}</span>
-                                    <span class="issue-title" :title="issue.title">{{ issue.title }}</span>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <div class="flex items-center flex-1 min-w-0">
+                                    <span class="text-xs font-semibold text-slate-500 mr-2 flex-shrink-0">#{{ issue.id }}</span>
+                                    <span class="text-sm font-medium text-slate-800 overflow-hidden text-ellipsis whitespace-nowrap" :title="issue.title">{{ issue.title }}</span>
                                 </div>
-                                <div class="issue-item-tags">
+                                <div class="flex gap-1.5 flex-shrink-0">
                                     <el-tag v-if="issue.priority > 1" type="danger" size="small" effect="dark">紧急</el-tag>
+                                    <el-tag v-if="issue.bug_type" :type="getBugTypeColor(issue.bug_type)" size="small" effect="plain">
+                                        {{ getBugTypeLabel(issue.bug_type) }}
+                                    </el-tag>
                                     <el-tag :type="getStatusTag(issue.status).type" size="small" effect="plain">
                                         {{ getStatusTag(issue.status).label }}
                                     </el-tag>
                                 </div>
                             </div>
-                            <div class="issue-item-meta">
-                                <span class="meta-item" v-if="issue.module">
-                                    <el-icon><FolderOpened /></el-icon>
-                                    {{ issue.module.name }}
-                                </span>
-                                <span class="meta-item" v-if="issue.bug_type">
-                                    <el-icon><Warning /></el-icon>
-                                    {{ getBugTypeLabel(issue.bug_type) }}
-                                </span>
-                                <span class="meta-item" v-if="issue.environment">
+                            <div class="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                                <span class="flex items-center gap-1" v-if="issue.environment">
                                     <el-icon><Monitor /></el-icon>
                                     {{ getEnvironmentLabel(issue.environment) }}
                                 </span>
-                                <span class="meta-item meta-user">
-                                    <el-icon><User /></el-icon>
+                                <span class="flex items-center gap-1" v-if="issue.module">
+                                    <el-icon><FolderOpened /></el-icon>
+                                    {{ issue.module.name }}
+                                </span>
+
+                                <span class="flex items-center gap-1 ml-auto text-slate-600">
                                     {{ issue.user.nickname }}
+                                    <template v-if="issue.cur_user">
+                                        <span class="text-slate-400 mx-1">→</span>
+                                        <span class="font-medium">{{ issue.cur_user.nickname }}</span>
+                                    </template>
                                 </span>
                             </div>
                         </div>
                         <el-empty v-if="!loading && issues.length === 0" description="暂无问题数据" />
                     </div>
-                    <div class="pagination-container">
+                    <div class="px-5 py-4 flex justify-center border-t border-slate-100">
                         <el-pagination v-model:current-page="page" :page-size="limit" layout="total, prev, pager, next" :total="total" @current-change="handlePageChange" small />
                     </div>
                 </el-card>
             </div>
 
             <!-- 右侧：问题详情 (40%) -->
-            <div class="issue-detail-panel">
-                <el-card shadow="never" v-if="selectedIssue" class="detail-card">
+            <div class="w-2/5 flex flex-col min-h-0">
+                <el-card shadow="never" v-if="selectedIssue" class="flex-1 flex flex-col overflow-hidden">
                     <template #header>
-                        <div class="detail-header">
-                            <h3 class="detail-title">问题详情</h3>
-                            <el-tag :type="getStatusTag(selectedIssue.status).type" effect="dark">
-                                {{ getStatusTag(selectedIssue.status).label }}
-                            </el-tag>
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-base font-semibold text-slate-800 m-0">问题详情</h3>
                         </div>
                     </template>
-                    <div class="detail-content-wrapper">
-                        <div class="detail-content">
-                            <div class="detail-section">
-                                <div class="section-label">问题标题</div>
-                                <div class="section-value">{{ selectedIssue.title }}</div>
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <div class="pb-4">
+                            <div class="mb-6">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">问题标题</div>
+                                <div class="text-sm text-slate-800">{{ selectedIssue.title }}</div>
                             </div>
-                            <div class="detail-section">
-                                <div class="section-label">问题描述</div>
-                                <div class="section-value content-text">{{ selectedIssue.content || "暂无描述" }}</div>
+                            <div class="mb-6">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">问题描述</div>
+                                <div class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap break-words" v-html="selectedIssue.content"></div>
                             </div>
-                            <div class="detail-section">
-                                <div class="section-label">优先级</div>
-                                <div class="section-value">
-                                    <el-tag :type="getPriorityTag(selectedIssue.priority)" effect="light">
-                                        {{ selectedIssue.priority > 1 ? "紧急" : "普通" }}
-                                    </el-tag>
+
+                            <!-- 快速编辑区域：2x2网格布局 -->
+                            <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                <div>
+                                    <div class="text-[13px] text-slate-500 mb-2 font-medium">状态</div>
+                                    <el-select v-model="selectedIssue.status" placeholder="选择状态" size="small" @change="handleStatusChange" class="w-full">
+                                        <el-option label="未修改" :value="1" />
+                                        <el-option label="未复现" :value="2" />
+                                        <el-option label="不是问题" :value="3" />
+                                        <el-option label="转下期需求" :value="4" />
+                                        <el-option label="已修改" :value="5" />
+                                        <el-option label="已上线" :value="6" />
+                                        <el-option label="验收通过" :value="7" />
+                                        <el-option label="暂不解决" :value="8" />
+                                        <el-option label="无法解决" :value="9" />
+                                        <el-option label="有异议需讨论" :value="10" />
+                                        <el-option label="重复提交" :value="11" />
+                                    </el-select>
+                                </div>
+                                <div>
+                                    <div class="text-[13px] text-slate-500 mb-2 font-medium">优先级</div>
+                                    <el-select v-model="selectedIssue.priority" placeholder="选择优先级" size="small" @change="handlePriorityChange" class="w-full">
+                                        <el-option label="普通" :value="1" />
+                                        <el-option label="紧急" :value="2" />
+                                    </el-select>
+                                </div>
+                                <div>
+                                    <div class="text-[13px] text-slate-500 mb-2 font-medium">所属模块</div>
+                                    <el-select v-model="selectedIssue.module_id" placeholder="选择模块" size="small" @change="handleModuleChange" clearable class="w-full">
+                                        <el-option v-for="module in modules" :key="module.id" :label="module.name" :value="module.id" />
+                                    </el-select>
+                                </div>
+                                <div>
+                                    <div class="text-[13px] text-slate-500 mb-2 font-medium">Bug类型</div>
+                                    <el-select v-model="selectedIssue.bug_type" placeholder="选择类型" size="small" @change="handleBugTypeChange" clearable class="w-full">
+                                        <el-option label="Bug" value="bug" />
+                                        <el-option label="样式问题" value="style" />
+                                        <el-option label="体验问题" value="experience" />
+                                        <el-option label="产品设计" value="design" />
+                                    </el-select>
                                 </div>
                             </div>
-                            <div class="detail-section">
-                                <div class="section-label">所属模块</div>
-                                <div class="section-value">{{ selectedIssue.module?.name || "未分配" }}</div>
+                            <div class="mb-6">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">报告人</div>
+                                <div class="text-sm text-slate-800">{{ selectedIssue.user.nickname }}</div>
                             </div>
-                            <div class="detail-section">
-                                <div class="section-label">报告人</div>
-                                <div class="section-value">{{ selectedIssue.user.nickname }}</div>
-                            </div>
-                            <div class="detail-section">
-                                <div class="section-label">指派给</div>
-                                <div class="section-value">
+                            <div class="mb-6">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">指派给</div>
+                                <div class="text-sm text-slate-800">
                                     <el-select v-model="selectedIssue.cur_user_id" placeholder="选择处理人" size="small" @change="handleAssignChange" clearable style="width: 200px">
                                         <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
                                     </el-select>
                                 </div>
                             </div>
-                            <div class="detail-section">
-                                <div class="section-label">创建时间</div>
-                                <div class="section-value">{{ selectedIssue.created_at }}</div>
+                            <div class="mb-6">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">创建时间</div>
+                                <div class="text-sm text-slate-800">{{ selectedIssue.created_at }}</div>
                             </div>
 
                             <!-- 评论历史 -->
-                            <div class="comment-history-section" v-if="comments.length > 0">
-                                <div class="section-label">评论记录（{{ comments.length }}）</div>
-                                <div class="comment-list" v-loading="commentsLoading">
-                                    <div v-for="comment in comments" :key="comment.id" class="comment-item">
-                                        <div class="comment-header">
-                                            <span class="comment-user">{{ comment.user.nickname }}</span>
-                                            <span class="comment-time">{{ comment.created_at }}</span>
+                            <div class="mt-6 pt-6 border-t border-gray-200" v-if="comments.length > 0">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">评论记录（{{ comments.length }}）</div>
+                                <div class="mt-3 max-h-[200px] overflow-y-auto" v-loading="commentsLoading">
+                                    <div v-for="comment in comments" :key="comment.id" class="mb-4 last:mb-0 p-3 bg-slate-50 rounded-lg border-l-3 border-l-blue-500">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="font-semibold text-sm text-slate-800">{{ comment.user.nickname }}</span>
+                                            <span class="text-xs text-slate-400">{{ comment.created_at }}</span>
                                         </div>
-                                        <div class="comment-content" v-html="comment.content"></div>
+                                        <div class="text-sm text-slate-600 leading-relaxed break-words" v-html="comment.content"></div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- 评论区 -->
-                            <div class="comment-section">
-                                <div class="section-label">添加评论</div>
-                                <RichEditor v-model="commentContent" height="150px" placeholder="任何人都可以评论...（支持粘贴图片）" />
-                                <div class="comment-actions">
+                            <div class="mt-6 pt-6 pb-6 border-t border-gray-200">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">添加评论</div>
+                                <RichEditor v-model="commentContent" height="120px" placeholder="任何人都可以评论...(支持粘贴图片)" />
+                                <div class="mt-3 flex justify-end pb-4">
                                     <el-button type="primary" size="small" :loading="commentSubmitting" @click="submitComment">
                                         {{ commentSubmitting ? "提交中..." : "提交评论" }}
                                     </el-button>
@@ -524,7 +707,7 @@ const goBack = () => {
                         </div>
                     </div>
                 </el-card>
-                <el-card shadow="never" v-else class="detail-card empty">
+                <el-card shadow="never" v-else class="flex-1 flex items-center justify-center">
                     <el-empty description="请从左侧选择一个问题查看详情" />
                 </el-card>
             </div>
@@ -532,7 +715,7 @@ const goBack = () => {
 
         <!-- 创建问题抽屉 -->
         <el-drawer v-model="createIssueDialogVisible" title="提交新问题" size="700px" direction="rtl">
-            <el-form ref="issueFormRef" :model="issueForm" :rules="issueRules" label-width="100px">
+            <el-form ref="issueFormRef" :model="issueForm" :rules="issueRules" label-width="90px" class="pr-4">
                 <el-form-item label="问题标题" prop="title">
                     <el-input v-model="issueForm.title" placeholder="请输入问题标题" />
                 </el-form-item>
@@ -613,381 +796,31 @@ const goBack = () => {
 </template>
 
 <style scoped>
-.project-detail-container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 20px;
-}
-
-.header-left {
-    flex: 1;
-}
-
-.project-info {
-    margin-top: 12px;
-}
-
-.page-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 4px 0;
-}
-
-.page-subtitle {
-    font-size: 14px;
-    color: #64748b;
-    margin: 0;
-}
-
-.filter-card {
-    margin-bottom: 20px;
-    border: none;
-}
-
-.filter-form :deep(.el-form-item) {
+/* 覆盖 Element Plus 表单项样式以适应 Grid */
+:deep(.el-form-item) {
     margin-bottom: 0;
-    margin-right: 16px;
-}
-
-.content-layout {
+    margin-right: 0;
     display: flex;
-    gap: 20px;
+}
+:deep(.el-form-item__content) {
     flex: 1;
-    overflow: hidden;
-    align-items: stretch;
+}
+:deep(.el-select),
+:deep(.el-input) {
+    width: 100%;
 }
 
-.issue-list-panel {
-    width: 60%;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.issue-detail-panel {
-    width: 40%;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.issue-list-panel > .el-card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.issue-detail-panel > .el-card {
-    height: 100%;
-}
-
-.list-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.list-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e293b;
-}
-
-.list-count {
-    font-size: 14px;
-    color: #64748b;
-}
-
-.issue-list {
-    flex: 1;
-    overflow-y: auto;
-}
-
-.issue-item {
-    padding: 10px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-left: 3px solid transparent;
-}
-
-.issue-item:hover {
-    background-color: #f8fafc;
-}
-
-.issue-item.active {
-    background-color: #eff6ff;
-    border-left-color: #3b82f6;
-}
-
-.issue-item.urgent {
-    border-left-color: #ef4444;
-    background-color: #fef2f2;
-}
-
-.issue-item.urgent.active {
-    background-color: #fee2e2;
-}
-
-.issue-item-main {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-}
-
-.issue-item-left {
-    display: flex;
-    align-items: center;
-    flex: 1;
-    min-width: 0;
-}
-
-.issue-id {
-    font-size: 12px;
-    font-weight: 600;
-    color: #64748b;
-    margin-right: 8px;
-    flex-shrink: 0;
-}
-
-.issue-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #1e293b;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.issue-item-tags {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-}
-
-.issue-item-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 12px;
-    color: #64748b;
-    flex-wrap: wrap;
-}
-
-.meta-item {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.meta-item .el-icon {
-    font-size: 14px;
-}
-
-.meta-user {
-    margin-left: auto;
-}
-
-.pagination-container {
-    padding: 16px 20px;
-    display: flex;
-    justify-content: center;
-    border-top: 1px solid #f1f5f9;
-}
-
-.detail-card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.detail-card.empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.detail-content-wrapper {
-    overflow-y: auto;
-    max-height: calc(100vh - 200px);
-    padding-right: 8px;
-}
-
-.detail-content-wrapper::-webkit-scrollbar {
+/* 滚动条样式 */
+.overflow-y-auto::-webkit-scrollbar {
     width: 6px;
 }
 
-.detail-content-wrapper::-webkit-scrollbar-thumb {
+.overflow-y-auto::-webkit-scrollbar-thumb {
     background-color: #cbd5e1;
     border-radius: 3px;
 }
 
-.detail-content-wrapper::-webkit-scrollbar-track {
+.overflow-y-auto::-webkit-scrollbar-track {
     background-color: #f1f5f9;
-}
-
-.detail-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.detail-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e293b;
-    margin: 0;
-}
-
-.detail-content {
-    flex: 1;
-    overflow-y: auto;
-}
-
-.detail-section {
-    margin-bottom: 24px;
-}
-
-.section-label {
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
-
-.section-value {
-    font-size: 14px;
-    color: #1e293b;
-}
-
-.content-text {
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.detail-footer {
-    display: flex;
-    gap: 12px;
-}
-
-.upload-tip {
-    font-size: 12px;
-    color: #94a3b8;
-    margin-top: 8px;
-}
-
-.image-preview-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 12px;
-}
-
-.image-preview-item {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid #e5e7eb;
-}
-
-.preview-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.remove-icon {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 20px;
-    height: 20px;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-}
-
-.remove-icon:hover {
-    background-color: rgba(0, 0, 0, 0.8);
-}
-
-.comment-history-section {
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid #e5e7eb;
-}
-
-.comment-list {
-    margin-top: 12px;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.comment-item {
-    margin-bottom: 16px;
-    padding: 12px;
-    background-color: #f8fafc;
-    border-radius: 8px;
-    border-left: 3px solid #3b82f6;
-}
-
-.comment-item:last-child {
-    margin-bottom: 0;
-}
-
-.comment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.comment-user {
-    font-weight: 600;
-    font-size: 14px;
-    color: #1e293b;
-}
-
-.comment-time {
-    font-size: 12px;
-    color: #94a3b8;
-}
-
-.comment-content {
-    font-size: 14px;
-    color: #475569;
-    line-height: 1.6;
-    word-break: break-word;
-}
-
-.comment-section {
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid #e5e7eb;
-}
-
-.comment-actions {
-    margin-top: 12px;
-    display: flex;
-    justify-content: flex-end;
 }
 </style>

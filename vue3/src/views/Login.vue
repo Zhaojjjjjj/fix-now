@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import DotGrid from "./DotGrid.vue";
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
 import { User, Lock } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
+import WaveBackground from "../components/WaveBackground.vue";
+import gsap from "gsap";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -39,150 +40,103 @@ const handleLogin = async (formEl: FormInstance | undefined) => {
         }
     });
 };
+
+onMounted(() => {
+    // 入场动画
+    const tl = gsap.timeline();
+    tl.from(".login-card", {
+        y: 30,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+    })
+        .from(
+            ".logo-area",
+            {
+                y: 20,
+                opacity: 0,
+                duration: 0.8,
+                ease: "back.out(1.7)",
+            },
+            "-=0.6"
+        )
+        .from(
+            ".form-area",
+            {
+                y: 20,
+                opacity: 0,
+                duration: 0.8,
+                ease: "power2.out",
+            },
+            "-=0.6"
+        );
+});
 </script>
 
 <template>
-    <div class="dot-grid-container">
-        <DotGrid
-            :dot-size="16"
-            :gap="32"
-            base-color="#27FF64"
-            active-color="#27FF64"
-            :proximity="150"
-            :speed-trigger="100"
-            :shock-radius="250"
-            :shock-strength="5"
-            :max-speed="5000"
-            :resistance="750"
-            :return-duration="1.5"
-            class-name="custom-dot-grid" />
+    <div class="relative flex justify-center items-center h-screen bg-slate-50 overflow-hidden">
+        <WaveBackground />
 
-        <div class="login-wrapper">
-            <div class="login-box">
-                <div class="login-header">
-                    <div class="logo-icon">
-                        <img src="/fix.png" alt="FixNow" class="w-5rem" />
-                    </div>
-                    <h1 class="title">FixNow</h1>
-                    <p class="subtitle"></p>
+        <div class="login-card w-full max-w-[420px] p-8 bg-white/80 backdrop-blur-xl rounded-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative z-10">
+            <div class="logo-area text-center mb-10">
+                <div class="inline-flex items-center justify-center w-40 h-40 bg-blue-50 text-blue-600 rounded-2xl mb-4 shadow-sm transform hover:scale-105 transition-transform duration-300">
+                    <img src="/fix.png" alt="FixNow" class="w-30 h-30" />
                 </div>
-
-                <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent class="login-form">
-                    <el-form-item prop="username">
-                        <el-input v-model="form.username" placeholder="用户名" :prefix-icon="User" />
-                    </el-form-item>
-                    <el-form-item prop="password">
-                        <el-input v-model="form.password" type="password" placeholder="密码" :prefix-icon="Lock" show-password @keyup.enter="handleLogin(formRef)" />
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" :loading="loading" class="submit-btn" @click="handleLogin(formRef)"> 立即登录 </el-button>
-                    </el-form-item>
-                </el-form>
+                <h1 class="text-2xl font-bold text-slate-800 m-0 leading-tight tracking-tight">FixNow</h1>
             </div>
+
+            <el-form ref="formRef" :model="form" :rules="rules" size="large" @submit.prevent class="form-area mb-2">
+                <el-form-item prop="username">
+                    <el-input v-model="form.username" placeholder="用户名" :prefix-icon="User" class="custom-input" />
+                </el-form-item>
+                <el-form-item prop="password">
+                    <el-input v-model="form.password" type="password" placeholder="密码" :prefix-icon="Lock" show-password @keyup.enter="handleLogin(formRef)" class="custom-input" />
+                </el-form-item>
+                <el-form-item>
+                    <el-button
+                        type="primary"
+                        :loading="loading"
+                        class="w-full font-semibold py-3 h-auto bg-blue-600 hover:bg-blue-700 border-none shadow-lg shadow-blue-500/20 transition-all duration-300 transform hover:translate-y-[-1px]"
+                        @click="handleLogin(formRef)">
+                        立即登录
+                    </el-button>
+                </el-form-item>
+            </el-form>
         </div>
     </div>
 </template>
 
 <style scoped>
-.dot-grid-container {
-    width: 100%;
-    height: 100vh;
-    position: relative;
-    overflow: hidden;
-}
-.login-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f2f5;
-    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
-    background-size: 24px 24px;
-    width: 100%;
-}
-
-.login-box {
-    width: 100%;
-    max-width: 400px;
-    padding: 40px;
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.login-header {
-    text-align: center;
-    margin-bottom: 32px;
-}
-
-.logo-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    background-color: #eff6ff;
-    color: #2563eb;
-    border-radius: 12px;
-    margin-bottom: 16px;
-}
-
-.title {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
-    line-height: 1.2;
-}
-
-.subtitle {
-    font-size: 14px;
-    color: #64748b;
-    margin-top: 8px;
-}
-
-.login-form {
-    margin-bottom: 24px;
-}
-
-.submit-btn {
-    width: 100%;
-    font-weight: 600;
-    padding: 12px 0;
-    height: auto;
-}
-
-.login-footer {
-    text-align: center;
-    font-size: 12px;
-    color: #94a3b8;
-}
-
-/* Override Element Plus Styles for cleaner look */
+/* Custom Input Styles for Light Theme */
 :deep(.el-input__wrapper) {
-    box-shadow: 0 0 0 1px #e2e8f0 inset;
+    background-color: #f8fafc !important;
+    box-shadow: 0 0 0 1px #e2e8f0 inset !important;
     border-radius: 8px;
-    background-color: #f8fafc;
+    color: #334155;
+    transition: all 0.2s ease;
+    padding: 4px 12px;
 }
 
 :deep(.el-input__wrapper:hover) {
-    box-shadow: 0 0 0 1px #cbd5e1 inset;
-    background-color: #fff;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 1px #cbd5e1 inset !important;
 }
 
 :deep(.el-input__wrapper.is-focus) {
-    box-shadow: 0 0 0 2px #3b82f6 inset !important;
-    background-color: #fff;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 1px #3b82f6 inset, 0 0 0 3px rgba(59, 130, 246, 0.1) inset !important;
 }
 
-:deep(.el-button--primary) {
-    background-color: #2563eb;
-    border-color: #2563eb;
-    border-radius: 8px;
+:deep(.el-input__inner) {
+    color: #1e293b !important;
+    height: 40px;
 }
 
-:deep(.el-button--primary:hover) {
-    background-color: #1d4ed8;
-    border-color: #1d4ed8;
+:deep(.el-input__inner::placeholder) {
+    color: #94a3b8;
+}
+
+:deep(.el-input__prefix-inner) {
+    color: #64748b;
 }
 </style>

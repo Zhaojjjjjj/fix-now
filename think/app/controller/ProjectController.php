@@ -19,49 +19,60 @@ class ProjectController extends _Controller
      */
     public function listAction()
     {
-        $IssueCount     = [
+        // 总问题数（所有）
+        $IssueCount = [
             'issueList' => function (Query $query, &$alias) {
-                $query->where('status', '<>', 8);
                 $alias = 'issueCount';
             },
         ];
+        
+        // 未解决问题数（非关闭状态）
+        $UnresolvedIssueCount = [
+            'issueList' => function (Query $query, &$alias) {
+                $query->where('status', '<>', 8);
+                $alias = 'unresolvedIssueCount';
+            },
+        ];
+
+        // 我的待办（非关闭且当前处理人是我）
         $UserIssueCount = [
             'issueList' => function (Query $query, &$alias) {
                 $query->where([
-                    [
-                        'status',
-                        '<>',
-                        8,
-                    ],
-                    [
-                        'cur_user_id',
-                        '=',
-                        $this->curUser['id'],
-                    ],
+                    ['status', '<>', 8],
+                    ['cur_user_id', '=', $this->curUser['id']],
                 ]);
                 $alias = 'userIssueCount';
             },
         ];
 
-        $where[] = [
-            'status',
-            '=',
-            $this->request->get('status'),
-        ];
+        $where = [];
+        $status = $this->request->get('status');
+        // 如果status存在且不为0（全部），则加入筛选
+        if ($status !== null && $status != 0) {
+            $where[] = ['status', '=', $status];
+        }
 
-        $data['projectList'] = Project::filterWhere($where)
+        // 获取分页参数
+        $limit = $this->request->get('limit', 15);
+
+        $query = Project::filterWhere($where)
             ->withCount($IssueCount)
-            ->withCount($UserIssueCount)
-            ->select();
+            ->withCount($UnresolvedIssueCount)
+            ->withCount($UserIssueCount);
 
         if ($this->curUser['role_id'] == 2) {
-            $data['projectList'] = Project::hasWhere('userProjectList', function (Query $query) {
+            $query->hasWhere('userProjectList', function (Query $query) {
                 $query->where(['user_id' => $this->curUser['id']]);
-            })
-                ->withCount($IssueCount)
-                ->withCount($UserIssueCount)
-                ->select();
+            });
         }
+
+        // 使用分页
+        $paginated = $query->paginate($limit);
+
+        $data['projectList'] = $paginated->items();
+        $data['total'] = $paginated->total();
+        $data['current_page'] = $paginated->currentPage();
+        $data['per_page'] = $paginated->listRows();
 
         $data['user'] = User::filterWhere([
             'status' => 1,

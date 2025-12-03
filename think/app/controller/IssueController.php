@@ -81,11 +81,16 @@ class IssueController extends _Controller
 
         if ($post = $this->request->post()) {
             $data            = $post;
-            $data['user_id'] = $this->curUser['id'];
-            $data['status']  = Issue::STATUS_NOTSOLVE;
+            // 只在创建新issue时设置user_id和默认状态
+            if ($row->isEmpty()) {
+                $data['user_id'] = $this->curUser['id'];
+                $data['status']  = Issue::STATUS_NOTSOLVE;
+            }
             $row->save($data);
 
-            $row->editLog($this->curUser['id'], $data['type'], $post['content']);
+            if (!empty($post['content'])) {
+                $row->editLog($this->curUser['id'], $data['type'] ?? 1, $post['content']);
+            }
 
             return $this->vueSuccess('操作成功', $row);
         }
