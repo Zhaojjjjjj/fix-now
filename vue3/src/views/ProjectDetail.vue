@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "../api";
 import { ArrowLeft, Plus, Monitor, FolderOpened, ArrowDown, ArrowUp, Check, Warning } from "@element-plus/icons-vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElImageViewer } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import RichEditor from "../components/RichEditor.vue";
 
@@ -115,6 +115,8 @@ const fetchComments = async () => {
         if (res.code === 1) {
             // 只显示评论类型的日志（type=5）
             comments.value = res.data.filter((log: any) => log.type === 5);
+            // 评论加载后设置图片点击事件
+            setupImageClickHandlers();
         }
     } catch (e) {
         console.error(e);
@@ -147,8 +149,8 @@ const submitComment = async () => {
         if (res.code === 1) {
             ElMessage.success("评论成功");
             commentContent.value = "";
-            // 刷新评论列表
-            fetchComments();
+            // 刷新评论列表并重新设置图片点击事件
+            await fetchComments();
         } else {
             ElMessage.error(res.msg || "评论失败");
         }
@@ -350,6 +352,8 @@ const handleSelectIssue = (issue: Issue) => {
     }
     // 加载评论历史
     fetchComments();
+    // 设置图片点击事件
+    setupImageClickHandlers();
 };
 
 const handlePageChange = (val: number) => {
@@ -456,6 +460,107 @@ const getEnvironmentLabel = (env: string) => {
 
 const goBack = () => {
     router.push("/projects");
+};
+
+// 图片查看器
+const imageViewerVisible = ref(false);
+const imageViewerUrls = ref<string[]>([]);
+const imageViewerIndex = ref(0);
+
+// 为图片添加点击事件并包装样式
+const wrapImageWithContainer = (img: HTMLImageElement, index: number, imageUrls: string[]) => {
+    // 检查是否已经被包装过
+    if (img.parentElement?.classList.contains("image-preview-container")) {
+        return;
+    }
+
+    const imgSrc = img.src;
+
+    // 创建容器
+    const container = document.createElement("div");
+    container.className = "image-preview-container relative w-full flex justify-center items-center rounded-lg overflow-hidden mb-4 cursor-pointer";
+    container.style.maxWidth = "600px";
+    container.style.maxHeight = "400px";
+    container.style.minHeight = "200px";
+    container.style.margin = "16px auto";
+
+    // 创建模糊背景层
+    const blurBg = document.createElement("div");
+    blurBg.className = "absolute inset-0 bg-center bg-cover";
+    blurBg.style.backgroundImage = `url(${imgSrc})`;
+    blurBg.style.filter = "blur(20px)";
+    blurBg.style.transform = "scale(1.1)";
+    blurBg.style.zIndex = "1";
+    blurBg.style.opacity = "0.6";
+
+    // 克隆图片并设置样式
+    const newImg = img.cloneNode(true) as HTMLImageElement;
+    newImg.className = "relative max-w-full max-h-full object-contain rounded-lg";
+    newImg.style.zIndex = "2";
+    newImg.style.maxHeight = "400px";
+    newImg.style.cursor = "pointer";
+    newImg.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+    newImg.style.transition = "transform 0.3s ease, box-shadow 0.3s ease";
+
+    // 添加点击事件
+    container.onclick = () => {
+        imageViewerUrls.value = imageUrls;
+        imageViewerIndex.value = index;
+        imageViewerVisible.value = true;
+    };
+
+    // 添加 hover 效果
+    container.onmouseenter = () => {
+        newImg.style.transform = "scale(1.02)";
+        newImg.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.2)";
+    };
+    container.onmouseleave = () => {
+        newImg.style.transform = "scale(1)";
+        newImg.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+    };
+
+    // 组装容器
+    container.appendChild(blurBg);
+    container.appendChild(newImg);
+
+    // 替换原图片
+    img.parentNode?.replaceChild(container, img);
+};
+
+// 为图片添加点击事件
+const setupImageClickHandlers = () => {
+    nextTick(() => {
+        // 为问题描述中的图片添加点击事件
+        const descriptionContainer = document.querySelector(".issue-description");
+        if (descriptionContainer) {
+            const images = Array.from(descriptionContainer.querySelectorAll("img")) as HTMLImageElement[];
+            // 过滤掉已经被包装过的图片
+            const unwrappedImages = images.filter((img) => !img.parentElement?.classList.contains("image-preview-container"));
+            const imageUrls = unwrappedImages.map((img) => img.src);
+
+            unwrappedImages.forEach((img, index) => {
+                wrapImageWithContainer(img, index, imageUrls);
+            });
+        }
+
+        // 为评论中的图片添加点击事件
+        const commentContainers = document.querySelectorAll(".comment-content");
+        commentContainers.forEach((container) => {
+            const images = Array.from(container.querySelectorAll("img")) as HTMLImageElement[];
+            // 过滤掉已经被包装过的图片
+            const unwrappedImages = images.filter((img) => !img.parentElement?.classList.contains("image-preview-container"));
+            const imageUrls = unwrappedImages.map((img) => img.src);
+
+            unwrappedImages.forEach((img, index) => {
+                wrapImageWithContainer(img, index, imageUrls);
+            });
+        });
+    });
+};
+
+// 关闭图片查看器
+const closeImageViewer = () => {
+    imageViewerVisible.value = false;
 };
 </script>
 
@@ -670,7 +775,7 @@ const goBack = () => {
                             </div>
                             <div class="mb-4">
                                 <div class="text-[13px] text-slate-500 mb-2 font-medium">问题描述</div>
-                                <div class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap break-words" v-html="selectedIssue.content"></div>
+                                <div class="issue-description text-sm text-slate-800 leading-relaxed whitespace-pre-wrap break-words" v-html="selectedIssue.content"></div>
                             </div>
                             <div class="mb-4">
                                 <div class="text-[13px] text-slate-500 mb-2 font-medium">报告人</div>
@@ -686,7 +791,7 @@ const goBack = () => {
                                             <span class="font-semibold text-sm text-slate-800">{{ comment.user.nickname }}</span>
                                             <span class="text-xs text-slate-400">{{ comment.created_at }}</span>
                                         </div>
-                                        <div class="text-sm text-slate-600 leading-relaxed break-words" v-html="comment.content"></div>
+                                        <div class="comment-content text-sm text-slate-600 leading-relaxed break-words" v-html="comment.content"></div>
                                     </div>
                                 </div>
                             </div>
@@ -789,6 +894,9 @@ const goBack = () => {
                 </div>
             </el-form>
         </el-drawer>
+
+        <!-- 图片查看器 -->
+        <el-image-viewer v-if="imageViewerVisible" :url-list="imageViewerUrls" :initial-index="imageViewerIndex" @close="closeImageViewer" :hide-on-click-modal="true" :teleported="true" />
     </div>
 </template>
 
@@ -819,5 +927,26 @@ const goBack = () => {
 
 .overflow-y-auto::-webkit-scrollbar-track {
     background-color: #f1f5f9;
+}
+
+/* 图片容器样式 */
+:deep(.image-preview-container) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f8fafc;
+}
+
+:deep(.image-preview-container):hover {
+    background: #f1f5f9;
+}
+
+/* 确保原始图片也有基础样式（以防 JS 未执行） */
+:deep(.issue-description img:not(.image-preview-container img)),
+:deep(.comment-content img:not(.image-preview-container img)) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>
