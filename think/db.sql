@@ -1,129 +1,132 @@
-# 用户
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
-	`id`         INT(10) NOT NULL AUTO_INCREMENT,
-	`created_at` DATETIME NOT NULL DEFAULT NOW(),
-	`updated_at` DATETIME NOT NULL,
-	`status`     TINYINT(1) NOT NULL DEFAULT 1,
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
-	`role_id`            INT(10)       DEFAULT 0            COMMENT '角色',
-	`username`           VARCHAR(30)   DEFAULT ''           COMMENT '用户名',
-	`pwd`                VARCHAR(50)   DEFAULT ''           COMMENT '密码',
-	`wxmp_openid`        VARCHAR(50)   DEFAULT ''           COMMENT '公众号ID',
-	`nickname`           VARCHAR(50)   DEFAULT ''           COMMENT '昵称',
-	`img_avatar`         VARCHAR(200)  DEFAULT ''           COMMENT '头像',
-	`mobile`             VARCHAR(30)   DEFAULT ''           COMMENT '手机',
-
-	PRIMARY KEY(`id`)
-) ENGINE=InnoDb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '用户';
-
-
-# 设置
-DROP TABLE IF EXISTS `setting`;
-CREATE TABLE `setting` (
-	`id`         INT(10) NOT NULL AUTO_INCREMENT,
-	`created_at` DATETIME NOT NULL DEFAULT NOW(),
-	`updated_at` DATETIME NOT NULL,
-	`status`     TINYINT(1) NOT NULL DEFAULT 1,
-
-	`m`                  VARCHAR(20)   DEFAULT ''           COMMENT '模块',
-	`g`                  VARCHAR(20)   DEFAULT ''           COMMENT '组别',
-	`k`                  VARCHAR(50)   DEFAULT ''           COMMENT '名称',
-	`v`                  VARCHAR(200)  DEFAULT ''           COMMENT '内容',
-	`is_load`            TINYINT(1)    DEFAULT 0            COMMENT '自动加载',
-
-	PRIMARY KEY(`id`)
-) ENGINE=InnoDb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '设置';
-
-
-# 项目
-DROP TABLE IF EXISTS `project`;
-CREATE TABLE `project` (
-	`id`         INT(10) NOT NULL AUTO_INCREMENT,
-	`created_at` DATETIME NOT NULL DEFAULT NOW(),
-	`updated_at` DATETIME NOT NULL,
-	`status`     TINYINT(1) NOT NULL DEFAULT 1,
-
-	`img_cover`          VARCHAR(100)  DEFAULT ''           COMMENT '封面图',
-	`description`        VARCHAR(1000) DEFAULT ''           COMMENT '项目描述',
-	`name`               VARCHAR(100)  DEFAULT ''           COMMENT '项目名称',
-
-	PRIMARY KEY(`id`)
-) ENGINE=InnoDb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '项目';
-
-
-# 模块
-DROP TABLE IF EXISTS `module`;
-CREATE TABLE `module` (
-	`id`         INT(10) NOT NULL AUTO_INCREMENT,
-	`created_at` DATETIME NOT NULL DEFAULT NOW(),
-	`updated_at` DATETIME NOT NULL,
-	`status`     TINYINT(1) NOT NULL DEFAULT 1,
-
-	`sort`               INT(10)       DEFAULT 0            COMMENT '排序',
-	`project_id`         INT(10)       DEFAULT 0            COMMENT '@project@',
-	`parent_id`          INT(10)       DEFAULT 0            COMMENT '@module@',
-	`name`               VARCHAR(20)   DEFAULT ''           COMMENT '名称',
-
-	PRIMARY KEY(`id`)
-) ENGINE=InnoDb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '模块';
-
-
-# 用户项目关联表
-DROP TABLE IF EXISTS `user_project`;
-CREATE TABLE `user_project` (
-	`id`         INT(10) NOT NULL AUTO_INCREMENT,
-	`created_at` DATETIME NOT NULL DEFAULT NOW(),
-	`updated_at` DATETIME NOT NULL,
-	`status`     TINYINT(1) NOT NULL DEFAULT 1,
-
-	`user_id`            INT(10)       DEFAULT 0            COMMENT '@user@',
-	`project_id`         INT(10)       DEFAULT 0            COMMENT '@project@',
-	`user_project_status` TINYINT(1)    DEFAULT 0            COMMENT '用户项目状态',
-
-	PRIMARY KEY(`id`)
-) ENGINE=InnoDb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '用户项目关联表';
-
-
-# 问题
+-- ----------------------------
+-- Table structure for issue
+-- ----------------------------
 DROP TABLE IF EXISTS `issue`;
 CREATE TABLE `issue` (
-	`id`         INT(10) NOT NULL AUTO_INCREMENT,
-	`created_at` DATETIME NOT NULL DEFAULT NOW(),
-	`updated_at` DATETIME NOT NULL,
-	`status`     TINYINT(1) NOT NULL DEFAULT 1,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `status` int(11) DEFAULT '1' COMMENT '1:未解决, 2:待审核, 8:已关闭',
+  `user_id` int(11) DEFAULT NULL COMMENT '创建人ID',
+  `cur_user_id` int(11) DEFAULT NULL COMMENT '当前处理人ID',
+  `project_id` int(11) DEFAULT NULL,
+  `module_id` int(11) DEFAULT NULL,
+  `sn` int(11) DEFAULT NULL COMMENT '序号',
+  `type` tinyint(4) DEFAULT '1' COMMENT '1:缺陷, 2:任务, 3:需求',
+  `priority` tinyint(4) DEFAULT '1' COMMENT '1:普通, 2:紧急',
+  `bug_type` varchar(255) DEFAULT NULL,
+  `environment` varchar(255) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `content` text,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-	`user_id`            INT(10)       DEFAULT 0            COMMENT '@user@',
-	`cur_user_id`        INT(10)       DEFAULT 0            COMMENT '@user@',
-	`project_id`         INT(10)       DEFAULT 0            COMMENT '@project@',
-	`module_id`          INT(10)       DEFAULT 0            COMMENT '@module@',
-	`sn`                 INT(10)       DEFAULT 0            COMMENT '序号',
-	`type`               TINYINT(1)    DEFAULT 0            COMMENT '类型',
-	`priority`           TINYINT(1)    DEFAULT 0            COMMENT '优先级',
-	`bug_type`           VARCHAR(20)   DEFAULT ''           COMMENT 'Bug类型: bug/style/experience/design',
-	`environment`        VARCHAR(20)   DEFAULT ''           COMMENT '开发环境: test/dev/prod',
-	`title`              VARCHAR(255)  DEFAULT ''           COMMENT '标题',
-	`content`            TEXT                               COMMENT '问题内容',
-
-	PRIMARY KEY(`id`)
-) ENGINE=InnoDb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '问题';
-
-
-# 问题日志
+-- ----------------------------
+-- Table structure for issue_log
+-- ----------------------------
 DROP TABLE IF EXISTS `issue_log`;
 CREATE TABLE `issue_log` (
-	`id`         INT(10) NOT NULL AUTO_INCREMENT,
-	`created_at` DATETIME NOT NULL DEFAULT NOW(),
-	`updated_at` DATETIME NOT NULL,
-	`status`     TINYINT(1) NOT NULL DEFAULT 1,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `status` int(11) DEFAULT '1',
+  `issue_id` int(11) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `next_user_id` int(11) DEFAULT NULL,
+  `type` tinyint(4) DEFAULT NULL COMMENT '1:发起, 2:修复, 3:驳回, 4:不通过, 5:评论, 6:指派, 8:审核通过, 9:修改',
+  `content` text,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-	`issue_id`           INT(10)       DEFAULT 0            COMMENT '@issue@',
-	`user_id`            INT(10)       DEFAULT 0            COMMENT '@user',
-	`next_user_id`       INT(10)       DEFAULT 0            COMMENT '@user',
-	`type`               TINYINT(1)    DEFAULT 0            COMMENT '类型',
-	`content`            TEXT                               COMMENT '内容',
+-- ----------------------------
+-- Table structure for module
+-- ----------------------------
+DROP TABLE IF EXISTS `module`;
+CREATE TABLE `module` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `status` int(11) DEFAULT '1',
+  `sort` int(11) DEFAULT '0',
+  `project_id` int(11) DEFAULT NULL,
+  `parent_id` int(11) DEFAULT '0',
+  `name` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-	PRIMARY KEY(`id`)
-) ENGINE=InnoDb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '问题日志';
+-- ----------------------------
+-- Table structure for project
+-- ----------------------------
+DROP TABLE IF EXISTS `project`;
+CREATE TABLE `project` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `status` int(11) DEFAULT '1' COMMENT '1:进行中, 2:已归档',
+  `img_cover` varchar(255) DEFAULT NULL,
+  `description` varchar(1000) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ----------------------------
+-- Table structure for setting
+-- ----------------------------
+DROP TABLE IF EXISTS `setting`;
+CREATE TABLE `setting` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `status` int(11) DEFAULT '1',
+  `m` varchar(50) DEFAULT NULL COMMENT '模块',
+  `g` varchar(50) DEFAULT NULL COMMENT '分组',
+  `k` varchar(100) DEFAULT NULL COMMENT '键',
+  `v` text COMMENT '值',
+  `is_load` tinyint(4) DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ----------------------------
+-- Table structure for user
+-- ----------------------------
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `status` int(11) DEFAULT '1',
+  `role_id` int(11) DEFAULT '1' COMMENT '1:管理员/开发, 2:普通用户',
+  `username` varchar(50) DEFAULT NULL,
+  `pwd` varchar(255) DEFAULT NULL,
+  `wxmp_openid` varchar(100) DEFAULT NULL,
+  `nickname` varchar(50) DEFAULT NULL,
+  `img_avatar` varchar(255) DEFAULT NULL,
+  `mobile` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Table structure for user_project
+-- ----------------------------
+DROP TABLE IF EXISTS `user_project`;
+CREATE TABLE `user_project` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `status` int(11) DEFAULT '1',
+  `user_id` int(11) DEFAULT NULL,
+  `project_id` int(11) DEFAULT NULL,
+  `user_project_status` tinyint(4) DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Records of user
+-- ----------------------------
+INSERT INTO `user` VALUES (1, NOW(), NOW(), 1, 1, 'admin', '123456', NULL, '管理员', '', '');
+
+SET FOREIGN_KEY_CHECKS = 1;

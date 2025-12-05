@@ -5,7 +5,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vue-tsc -b && vite build",
+        "build": "vue-tsc -b && vite build && npm run deploy",
+        "deploy": "rm -rf ../think/public/assets && cp -r dist/assets ../think/public/ && cp dist/fix.png ../think/public/ && cat dist/index.html > ../think/view/home_index.html",
         "preview": "vite preview"
     },
     "dependencies": {

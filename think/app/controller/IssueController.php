@@ -104,7 +104,8 @@ class IssueController extends _Controller
         $row['userList']   = User::filterWhere(['status' => 1])
             ->withJoin('userProjectList')
             ->select();
-        $row['moduleList'] = getChildren(Module::filterWhere(['status' => 1])
+        $projectId = $row['project_id'] ?: $this->reqPId;
+        $row['moduleList'] = getChildren(Module::filterWhere(['status' => 1, 'project_id' => $projectId])
             ->select());
 
         return $this->vueSuccess($row);

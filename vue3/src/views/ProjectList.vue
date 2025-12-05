@@ -287,7 +287,7 @@ onMounted(() => {
                 </el-form-item>
                 <el-form-item label="项目模块">
                     <div class="w-full">
-                        <div v-for="(module, index) in projectForm.modules" :key="index" class="flex gap-3 items-center mb-3">
+                        <div v-for="(_module, index) in projectForm.modules" :key="index" class="flex gap-3 items-center mb-3">
                             <el-input v-model="projectForm.modules[index]" placeholder="请输入模块名称" class="flex-1" />
                             <el-button v-if="projectForm.modules.length > 1" type="danger" text @click="removeModule(index)"> 删除 </el-button>
                         </div>

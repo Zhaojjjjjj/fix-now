@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "../api";
-import { ArrowLeft, Plus, Monitor, FolderOpened, ArrowDown, ArrowUp } from "@element-plus/icons-vue";
+import { ArrowLeft, Plus, Monitor, FolderOpened, ArrowDown, ArrowUp, Check, Warning } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import RichEditor from "../components/RichEditor.vue";
@@ -64,8 +64,8 @@ const issueForm = ref({
     module_id: "",
     cur_user_id: "",
     type: 1,
-    environment: "",
-    bug_type: "",
+    environment: "test",
+    bug_type: "bug",
     status: "1",
 });
 
@@ -447,9 +447,9 @@ const getBugTypeColor = (type: string) => {
 
 const getEnvironmentLabel = (env: string) => {
     const labels: Record<string, string> = {
-        test: "测试",
-        dev: "开发",
-        prod: "正式",
+        test: "测试环境",
+        dev: "开发环境",
+        prod: "正式环境",
     };
     return labels[env] || env;
 };
@@ -462,7 +462,7 @@ const goBack = () => {
 <template>
     <div class="h-full flex flex-col">
         <!-- 页面头部 -->
-        <div class="flex justify-between items-start mb-5">
+        <div class="flex justify-between items-start mb-3">
             <div class="flex-1">
                 <el-button :icon="ArrowLeft" @click="goBack">返回项目列表</el-button>
                 <div class="mt-3 flex items-center gap-3" v-if="project">
@@ -472,14 +472,14 @@ const goBack = () => {
                 </div>
             </div>
             <div class="flex gap-3">
-                <el-button v-if="project?.status !== 2" type="warning" plain @click="handleArchiveProject">归档项目</el-button>
-                <el-button v-else type="success" plain @click="handleActivateProject">重新激活</el-button>
-                <el-button type="primary" :icon="Plus" size="large" @click="handleCreateIssue" :disabled="project?.status === 2">提交新问题</el-button>
+                <el-button v-if="project?.status !== 2" type="warning" :icon="Warning" plain @click="handleArchiveProject">归档项目</el-button>
+                <el-button v-else type="success" :icon="Check" plain @click="handleActivateProject">重新激活</el-button>
+                <el-button type="primary" :icon="Plus" @click="handleCreateIssue" :disabled="project?.status === 2">提交新问题</el-button>
             </div>
         </div>
 
         <!-- 筛选区域 -->
-        <el-card class="mb-5 border-none" shadow="never">
+        <el-card class="mb-3 border-none" shadow="never">
             <div class="flex justify-between items-start">
                 <el-form :inline="true" :model="filters" class="filter-form flex-1 grid grid-cols-4 gap-4">
                     <el-form-item label="标题搜索" class="mr-0 w-full">
@@ -529,7 +529,7 @@ const goBack = () => {
                         </el-form-item>
                     </template>
                 </el-form>
-                <div class="flex gap-2 ml-4 mt-1">
+                <div class="flex gap-4 ml-8">
                     <el-button type="primary" @click="fetchIssues">查询</el-button>
                     <el-button @click="resetFilters">重置</el-button>
                     <el-button link type="primary" @click="isFilterExpanded = !isFilterExpanded">
@@ -541,7 +541,7 @@ const goBack = () => {
         </el-card>
 
         <!-- 主内容区：左右分栏 -->
-        <div class="flex gap-5 flex-1 min-h-0 items-stretch">
+        <div class="flex gap-3 flex-1 min-h-0 items-stretch">
             <!-- 左侧：问题列表 (60%) -->
             <div class="w-3/5 flex flex-col h-full">
                 <el-card shadow="never" :body-style="{ padding: '0' }" class="h-full flex flex-col">
@@ -604,24 +604,16 @@ const goBack = () => {
             </div>
 
             <!-- 右侧：问题详情 (40%) -->
-            <div class="w-2/5 flex flex-col min-h-0">
-                <el-card shadow="never" v-if="selectedIssue" class="flex-1 flex flex-col overflow-hidden">
+            <div class="w-2/5 flex flex-col h-full">
+                <el-card shadow="never" v-if="selectedIssue" class="flex-1 flex flex-col overflow-hidden" :body-style="{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: 0 }">
                     <template #header>
                         <div class="flex justify-between items-center">
-                            <h3 class="text-base font-semibold text-slate-800 m-0">问题详情</h3>
+                            <h3 class="text-base font-semibold text-slate-800 m-0">问题详情 #{{ selectedIssue.id }}</h3>
+                            <span class="text-sm text-slate-500">{{ selectedIssue.created_at ? selectedIssue.created_at : "" }}</span>
                         </div>
                     </template>
-                    <div class="flex-1 overflow-y-auto p-4">
-                        <div class="pb-4">
-                            <div class="mb-6">
-                                <div class="text-[13px] text-slate-500 mb-2 font-medium">问题标题</div>
-                                <div class="text-sm text-slate-800">{{ selectedIssue.title }}</div>
-                            </div>
-                            <div class="mb-6">
-                                <div class="text-[13px] text-slate-500 mb-2 font-medium">问题描述</div>
-                                <div class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap break-words" v-html="selectedIssue.content"></div>
-                            </div>
-
+                    <div class="flex-1 overflow-y-auto">
+                        <div class="p-5">
                             <!-- 快速编辑区域：2x2网格布局 -->
                             <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
                                 <div>
@@ -662,28 +654,32 @@ const goBack = () => {
                                         <el-option label="产品设计" value="design" />
                                     </el-select>
                                 </div>
-                            </div>
-                            <div class="mb-6">
-                                <div class="text-[13px] text-slate-500 mb-2 font-medium">报告人</div>
-                                <div class="text-sm text-slate-800">{{ selectedIssue.user.nickname }}</div>
-                            </div>
-                            <div class="mb-6">
-                                <div class="text-[13px] text-slate-500 mb-2 font-medium">指派给</div>
-                                <div class="text-sm text-slate-800">
-                                    <el-select v-model="selectedIssue.cur_user_id" placeholder="选择处理人" size="small" @change="handleAssignChange" clearable style="width: 200px">
-                                        <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
-                                    </el-select>
+                                <div class="">
+                                    <div class="text-[13px] text-slate-500 mb-2 font-medium">指派给</div>
+                                    <div class="text-sm text-slate-800">
+                                        <el-select v-model="selectedIssue.cur_user_id" placeholder="选择处理人" size="small" @change="handleAssignChange" clearable style="width: 200px">
+                                            <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
+                                        </el-select>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mb-6">
-                                <div class="text-[13px] text-slate-500 mb-2 font-medium">创建时间</div>
-                                <div class="text-sm text-slate-800">{{ selectedIssue.created_at }}</div>
+                            <div class="mb-4">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">问题标题</div>
+                                <div class="text-sm text-slate-800">{{ selectedIssue.title }}</div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">问题描述</div>
+                                <div class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap break-words" v-html="selectedIssue.content"></div>
+                            </div>
+                            <div class="mb-4">
+                                <div class="text-[13px] text-slate-500 mb-2 font-medium">报告人</div>
+                                <div class="text-sm text-slate-800">{{ selectedIssue.user.nickname }}</div>
                             </div>
 
                             <!-- 评论历史 -->
                             <div class="mt-6 pt-6 border-t border-gray-200" v-if="comments.length > 0">
                                 <div class="text-[13px] text-slate-500 mb-2 font-medium">评论记录（{{ comments.length }}）</div>
-                                <div class="mt-3 max-h-[200px] overflow-y-auto" v-loading="commentsLoading">
+                                <div class="mt-3 max-h-[600px] overflow-y-auto" v-loading="commentsLoading">
                                     <div v-for="comment in comments" :key="comment.id" class="mb-4 last:mb-0 p-3 bg-slate-50 rounded-lg border-l-3 border-l-blue-500">
                                         <div class="flex justify-between items-center mb-2">
                                             <span class="font-semibold text-sm text-slate-800">{{ comment.user.nickname }}</span>
@@ -798,7 +794,7 @@ const goBack = () => {
 <style scoped>
 /* 覆盖 Element Plus 表单项样式以适应 Grid */
 :deep(.el-form-item) {
-    margin-bottom: 0;
+    margin-bottom: 16px;
     margin-right: 0;
     display: flex;
 }

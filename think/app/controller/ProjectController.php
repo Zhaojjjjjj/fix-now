@@ -58,7 +58,8 @@ class ProjectController extends _Controller
         $query = Project::filterWhere($where)
             ->withCount($IssueCount)
             ->withCount($UnresolvedIssueCount)
-            ->withCount($UserIssueCount);
+            ->withCount($UserIssueCount)
+            ->order('id desc');
 
         if ($this->curUser['role_id'] == 2) {
             $query->hasWhere('userProjectList', function (Query $query) {

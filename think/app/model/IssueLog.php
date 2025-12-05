@@ -122,13 +122,7 @@ class IssueLog extends \app\model\AR
      */
     public function getCreatedAtAttr($date)
     {
-        if (Carbon::now() > Carbon::parse($date)
-                ->addDays(7)) {
-            return Carbon::parse($date)
-                ->toDateTimeString();
-        }
-
         return Carbon::parse($date)
-            ->diffForHumans();
+            ->toDateTimeString();
     }
 }

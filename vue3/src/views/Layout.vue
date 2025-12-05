@@ -2,7 +2,7 @@
 import { onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "../stores/auth";
-import { SwitchButton, UserFilled, Setting, ArrowDown } from "@element-plus/icons-vue";
+import { SwitchButton, UserFilled, Setting } from "@element-plus/icons-vue";
 
 const router = useRouter();
 const route = useRoute();
