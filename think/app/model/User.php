@@ -74,4 +74,20 @@ class User extends \app\model\AR
     {
         return $this->hasMany(Issue::class, 'cur_user_id', 'id');
     }
+
+    /**
+     * 头像访问器 - 将 img_avatar 映射为 avatar
+     */
+    public function getAvatarAttr($value, $data)
+    {
+        return $data['img_avatar'] ?? '';
+    }
+
+    /**
+     * 头像修改器 - 将 avatar 映射为 img_avatar
+     */
+    public function setAvatarAttr($value)
+    {
+        return ['img_avatar' => $value];
+    }
 }

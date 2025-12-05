@@ -46,7 +46,7 @@ const getPageTitle = computed(() => {
             </div>
             <div class="flex items-center gap-4 relative z-10">
                 <div class="flex items-center gap-3 px-2 py-1.5 rounded-full hover:bg-slate-100 transition-colors duration-300 cursor-pointer" v-if="authStore.user">
-                    <el-avatar :size="32" :icon="UserFilled" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white ring-2 ring-white shadow-sm" />
+                    <el-avatar :size="32" :src="authStore.user.avatar" :icon="UserFilled" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white ring-2 ring-white shadow-sm" />
                     <span class="text-sm text-slate-700 font-medium px-2">{{ authStore.user.nickname || authStore.user.username }}</span>
                     <el-dropdown trigger="click">
                         <span class="cursor-pointer text-slate-400 hover:text-slate-600 flex items-center transition-colors">

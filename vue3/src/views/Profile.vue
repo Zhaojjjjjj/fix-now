@@ -26,8 +26,10 @@ const passwordForm = ref({
 });
 
 const userRules = ref<FormRules>({
-    nickname: [{ required: true, message: "请输入昵称", trigger: "blur" }],
-    username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
+    nickname: [
+        { required: true, message: "请输入昵称", trigger: "blur" },
+        { min: 2, max: 20, message: "昵称长度为 2-20 个字符", trigger: "blur" },
+    ],
 });
 
 const passwordRules = ref<FormRules>({
@@ -65,8 +67,27 @@ onMounted(async () => {
 });
 
 const handleAvatarUpload: UploadProps["onChange"] = async (file) => {
+    if (!file.raw) {
+        ElMessage.error("请选择图片文件");
+        return;
+    }
+
+    // 验证文件类型
+    const isImage = file.raw.type.startsWith("image/");
+    if (!isImage) {
+        ElMessage.error("只能上传图片文件");
+        return;
+    }
+
+    // 验证文件大小（5MB）
+    const isLt5M = file.raw.size / 1024 / 1024 < 5;
+    if (!isLt5M) {
+        ElMessage.error("图片大小不能超过 5MB");
+        return;
+    }
+
     const formData = new FormData();
-    formData.append("file", file.raw!);
+    formData.append("file", file.raw);
 
     uploadLoading.value = true;
     try {
@@ -76,25 +97,31 @@ const handleAvatarUpload: UploadProps["onChange"] = async (file) => {
             },
         });
         if (res.code === 1) {
+            // 更新本地表单
             userForm.value.avatar = res.data.url;
 
-            // 自动保存头像更新
+            // 自动保存头像到服务器
             try {
-                await api.post("/user/edit", {
+                const saveRes: any = await api.post("/user/edit", {
                     avatar: res.data.url,
                     nickname: userForm.value.nickname,
-                    username: userForm.value.username,
                 });
-                await authStore.fetchUser();
-                ElMessage.success("头像上传并保存成功");
-            } catch (error) {
-                console.error(error);
-                ElMessage.warning("头像上传成功但保存失败，请点击保存按钮");
+                if (saveRes.code === 1) {
+                    // 刷新用户信息，确保右上角同步更新
+                    await authStore.fetchUser();
+                    ElMessage.success("头像更新成功");
+                } else {
+                    ElMessage.error(saveRes.msg || "头像保存失败");
+                }
+            } catch (error: any) {
+                console.error("保存头像失败:", error);
+                ElMessage.error(error.response?.data?.msg || "头像保存失败");
             }
         } else {
             ElMessage.error(res.msg || "上传失败");
         }
     } catch (e: any) {
+        console.error("上传头像失败:", e);
         ElMessage.error(e.response?.data?.msg || "上传失败");
     } finally {
         uploadLoading.value = false;
@@ -106,10 +133,14 @@ const submitUserInfo = async (formEl: FormInstance | undefined) => {
     await formEl.validate(async (valid) => {
         if (valid) {
             try {
-                const res: any = await api.post("/user/edit", userForm.value);
+                const res: any = await api.post("/user/edit", {
+                    nickname: userForm.value.nickname,
+                    avatar: userForm.value.avatar,
+                });
                 if (res.code === 1) {
-                    ElMessage.success("个人信息更新成功");
+                    // 刷新用户信息，确保右上角同步更新
                     await authStore.fetchUser();
+                    ElMessage.success("个人信息更新成功");
                 } else {
                     ElMessage.error(res.msg || "更新失败");
                 }
@@ -179,11 +210,11 @@ const submitPassword = async (formEl: FormInstance | undefined) => {
                     </div>
 
                     <el-form ref="userFormRef" :model="userForm" :rules="userRules" label-position="top" size="large">
-                        <el-form-item label="用户名" prop="username">
-                            <el-input v-model="userForm.username" placeholder="用户名不可修改" :prefix-icon="User" disabled />
+                        <el-form-item label="用户名（登录账号）">
+                            <el-input v-model="userForm.username" placeholder="用户名由管理员分配，不可修改" :prefix-icon="User" disabled class="disabled-input" />
                         </el-form-item>
                         <el-form-item label="昵称" prop="nickname">
-                            <el-input v-model="userForm.nickname" placeholder="请输入昵称" />
+                            <el-input v-model="userForm.nickname" placeholder="请输入昵称（2-20个字符）" maxlength="20" show-word-limit />
                         </el-form-item>
                         <el-form-item class="mt-8">
                             <el-button type="primary" class="w-full" @click="submitUserInfo(userFormRef)">保存个人信息</el-button>
