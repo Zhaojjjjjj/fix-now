@@ -34,7 +34,7 @@ export const useAuthStore = defineStore("auth", {
         async fetchUser() {
             if (this.isLoggedIn) {
                 try {
-                    const res: any = await api.get("/user/edit");
+                    const res: any = await api.get("/user/edit", { params: { _t: Date.now() } });
                     if (res.code === 1) {
                         this.user = res.data;
                     }

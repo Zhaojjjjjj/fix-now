@@ -565,7 +565,7 @@ const closeImageViewer = () => {
 </script>
 
 <template>
-    <div class="h-full flex flex-col">
+    <div class="h-[calc(100vh-100px)] flex flex-col">
         <!-- 页面头部 -->
         <div class="flex justify-between items-start mb-3">
             <div class="flex-1">
@@ -584,9 +584,9 @@ const closeImageViewer = () => {
         </div>
 
         <!-- 筛选区域 -->
-        <el-card class="mb-3 border-none" shadow="never">
+        <div class="glass-card mb-3 p-4 pb-0">
             <div class="flex justify-between items-start">
-                <el-form :inline="true" :model="filters" label-width="80px" class="filter-form flex-1 grid grid-cols-4 gap-4">
+                <el-form :inline="true" :model="filters" label-width="80px" class="filter-form flex-1 grid grid-cols-4">
                     <el-form-item label="状态" class="mr-0 w-full">
                         <el-select v-model="filters.status" placeholder="全部状态" clearable>
                             <el-option label="未修改" value="1" />
@@ -617,17 +617,14 @@ const closeImageViewer = () => {
                             <el-option label="产品设计" value="design" />
                         </el-select>
                     </el-form-item>
-                    <el-form-item label="标题搜索" class="mr-0 w-full">
-                        <el-input v-model="filters.title" placeholder="输入标题关键字..." clearable />
+                    <el-form-item label="开发环境" class="mr-0 w-full">
+                        <el-select v-model="filters.environment" placeholder="全部环境" clearable>
+                            <el-option label="测试环境" value="test" />
+                            <el-option label="开发环境" value="dev" />
+                            <el-option label="正式环境" value="prod" />
+                        </el-select>
                     </el-form-item>
                     <template v-if="isFilterExpanded">
-                        <el-form-item label="开发环境" class="mr-0 w-full">
-                            <el-select v-model="filters.environment" placeholder="全部环境" clearable>
-                                <el-option label="测试环境" value="test" />
-                                <el-option label="开发环境" value="dev" />
-                                <el-option label="正式环境" value="prod" />
-                            </el-select>
-                        </el-form-item>
                         <el-form-item label="报告人" class="mr-0 w-full">
                             <el-select v-model="filters.user_id" placeholder="全部" clearable filterable>
                                 <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
@@ -638,33 +635,32 @@ const closeImageViewer = () => {
                 <div class="flex gap-4 ml-8">
                     <el-button type="primary" @click="fetchIssues">查询</el-button>
                     <el-button @click="resetFilters">重置</el-button>
-                    <el-button link type="primary" @click="isFilterExpanded = !isFilterExpanded">
+                    <el-button type="primary" @click="isFilterExpanded = !isFilterExpanded">
                         {{ isFilterExpanded ? "收起" : "展开" }}
                         <el-icon class="el-icon--right"><component :is="isFilterExpanded ? ArrowUp : ArrowDown" /></el-icon>
                     </el-button>
                 </div>
             </div>
-        </el-card>
+        </div>
 
         <!-- 主内容区：左右分栏 -->
         <div class="flex gap-3 flex-1 min-h-0 items-stretch">
             <!-- 左侧：问题列表 (60%) -->
             <div class="w-3/5 flex flex-col h-full">
-                <el-card shadow="never" :body-style="{ padding: '0' }" class="h-full flex flex-col">
-                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
-                        <span class="text-base font-semibold text-slate-800">问题列表</span>
-                        <span class="text-sm text-slate-500">共 {{ total }} 条</span>
+                <div class="glass-card h-full flex flex-col overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-200/60 flex justify-between items-center bg-slate-50/50 backdrop-blur-sm">
+                        <span class="text-base font-bold text-slate-800">问题列表</span>
+                        <span class="text-sm text-slate-500 font-medium bg-white/50 px-2 py-0.5 rounded-md">共 {{ total }} 条</span>
                     </div>
                     <div v-loading="loading" class="flex-1 overflow-y-auto">
                         <div
                             v-for="issue in issues"
                             :key="issue.id"
-                            class="px-4 py-2.5 border-b border-slate-100 cursor-pointer transition-all border-l-3 border-l-transparent"
+                            class="px-4 py-3 border-b border-slate-100 cursor-pointer transition-all duration-200 border-l-[3px] border-l-transparent hover:bg-blue-50/30"
                             :class="{
-                                'bg-blue-50 border-l-blue-500': selectedIssue?.id === issue.id,
-                                'border-l-red-500 bg-red-50': issue.priority > 1,
-                                'bg-red-100': issue.priority > 1 && selectedIssue?.id === issue.id,
-                                'hover:bg-slate-50': selectedIssue?.id !== issue.id,
+                                'bg-blue-50/80 border-l-blue-500': selectedIssue?.id === issue.id,
+                                'border-l-red-500 bg-red-50/80': issue.priority > 1 && selectedIssue?.id === issue.id,
+                                'border-l-red-500 bg-red-50/30': issue.priority > 1 && selectedIssue?.id !== issue.id,
                             }"
                             @click="handleSelectIssue(issue)">
                             <div class="flex justify-between items-center mb-1.5">
@@ -703,25 +699,23 @@ const closeImageViewer = () => {
                         </div>
                         <el-empty v-if="!loading && issues.length === 0" description="暂无问题数据" />
                     </div>
-                    <div class="px-5 py-4 flex justify-center border-t border-slate-100">
-                        <el-pagination v-model:current-page="page" :page-size="limit" layout="total, prev, pager, next" :total="total" @current-change="handlePageChange" small />
+                    <div class="px-5 py-3 flex justify-center border-t border-slate-200/60 bg-slate-50/30">
+                        <el-pagination v-model:current-page="page" :page-size="limit" layout="total, prev, pager, next" :total="total" @current-change="handlePageChange" small background />
                     </div>
-                </el-card>
+                </div>
             </div>
 
             <!-- 右侧：问题详情 (40%) -->
             <div class="w-2/5 flex flex-col h-full">
-                <el-card shadow="never" v-if="selectedIssue" class="flex-1 flex flex-col overflow-hidden" :body-style="{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: 0 }">
-                    <template #header>
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-base font-semibold text-slate-800 m-0">问题详情 #{{ selectedIssue.id }}</h3>
-                            <span class="text-sm text-slate-500">{{ selectedIssue.created_at ? selectedIssue.created_at : "" }}</span>
-                        </div>
-                    </template>
+                <div v-if="selectedIssue" class="glass-card h-full flex flex-col overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-200/60 flex justify-between items-center bg-slate-50/50 backdrop-blur-sm">
+                        <h3 class="text-base font-bold text-slate-800 m-0">问题详情 #{{ selectedIssue.id }}</h3>
+                        <span class="text-sm text-slate-500 font-mono bg-white/50 px-2 py-0.5 rounded">{{ selectedIssue.created_at ? selectedIssue.created_at.split(" ")[0] : "" }}</span>
+                    </div>
                     <div class="flex-1 overflow-y-auto">
                         <div class="p-5">
                             <!-- 快速编辑区域：2x2网格布局 -->
-                            <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                            <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50/80 rounded-xl border border-slate-200/60 shadow-sm">
                                 <div>
                                     <div class="text-[13px] text-slate-500 mb-2 font-medium">状态</div>
                                     <el-select v-model="selectedIssue.status" placeholder="选择状态" size="small" @change="handleStatusChange" class="w-full">
@@ -797,10 +791,10 @@ const closeImageViewer = () => {
                             </div>
 
                             <!-- 评论区 -->
-                            <div class="mt-6 pt-6 pb-6 border-t border-gray-200">
+                            <div class="mt-6 pt-6 border-t border-gray-200">
                                 <div class="text-[13px] text-slate-500 mb-2 font-medium">添加评论</div>
-                                <RichEditor v-model="commentContent" height="120px" placeholder="任何人都可以评论...(支持粘贴图片)" />
-                                <div class="mt-3 flex justify-end pb-4">
+                                <RichEditor v-model="commentContent" height="320px" placeholder="任何人都可以评论...(支持粘贴图片)" />
+                                <div class="mt-3 flex justify-end">
                                     <el-button type="primary" size="small" :loading="commentSubmitting" @click="submitComment">
                                         {{ commentSubmitting ? "提交中..." : "提交评论" }}
                                     </el-button>
@@ -808,10 +802,16 @@ const closeImageViewer = () => {
                             </div>
                         </div>
                     </div>
-                </el-card>
-                <el-card shadow="never" v-else class="flex-1 flex items-center justify-center">
-                    <el-empty description="请从左侧选择一个问题查看详情" />
-                </el-card>
+                </div>
+                <div v-else class="glass-card h-full flex flex-col items-center justify-center text-slate-400">
+                    <el-empty description="请从左侧选择一个问题查看详情">
+                        <template #image>
+                            <div class="flex justify-center items-center w-[160px] h-[160px] rounded-full bg-slate-50 border border-slate-100 mx-auto mb-4 shadow-sm">
+                                <el-icon :size="64" class="text-slate-300"><FolderOpened /></el-icon>
+                            </div>
+                        </template>
+                    </el-empty>
+                </div>
             </div>
         </div>
 

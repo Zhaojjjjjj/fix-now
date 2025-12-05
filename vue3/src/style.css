@@ -54,15 +54,116 @@ button:focus-visible {
     padding: 2em;
 }
 
-@media (prefers-color-scheme: light) {
-    :root {
-        color: #213547;
-        background-color: #ffffff;
-    }
-    a:hover {
-        color: #747bff;
-    }
-    button {
-        background-color: #f9f9f9;
-    }
+/* Global Element Plus Overrides for Modern UI */
+
+/* Inputs */
+.el-input__wrapper {
+    background-color: #f8fafc !important;
+    box-shadow: 0 0 0 1px #e2e8f0 inset !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    padding: 4px 12px !important;
+}
+
+.el-input__wrapper:hover {
+    background-color: #fff !important;
+    box-shadow: 0 0 0 1px #cbd5e1 inset !important;
+}
+
+.el-input__wrapper.is-focus {
+    background-color: #fff !important;
+    box-shadow: 0 0 0 1px #3b82f6 inset, 0 0 0 3px rgba(59, 130, 246, 0.1) inset !important;
+}
+
+.el-input__inner {
+    color: #334155 !important;
+    height: 36px !important;
+}
+
+.el-textarea__inner {
+    background-color: #f8fafc !important;
+    box-shadow: 0 0 0 1px #e2e8f0 inset !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    color: #334155 !important;
+}
+
+.el-textarea__inner:hover {
+    background-color: #fff !important;
+    box-shadow: 0 0 0 1px #cbd5e1 inset !important;
+}
+
+.el-textarea__inner:focus {
+    background-color: #fff !important;
+    box-shadow: 0 0 0 1px #3b82f6 inset, 0 0 0 3px rgba(59, 130, 246, 0.1) inset !important;
+}
+
+/* Selects */
+.el-select .el-input__wrapper {
+    background-color: #f8fafc !important;
+}
+
+/* Buttons */
+.el-button {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.el-button--primary {
+    background-color: #2563eb !important; /* blue-600 */
+    border-color: #2563eb !important;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1), 0 2px 4px -1px rgba(37, 99, 235, 0.06) !important;
+}
+
+.el-button--primary:hover {
+    background-color: #1d4ed8 !important; /* blue-700 */
+    border-color: #1d4ed8 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -2px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* Cards & Containers */
+.glass-card {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    border-radius: 16px;
+}
+
+.glass-panel {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+}
+
+/* Dialogs */
+.el-dialog {
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.el-dialog__header {
+    margin-right: 0 !important;
+    padding: 20px 24px !important;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.el-dialog__title {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+}
+
+.el-dialog__body {
+    padding: 24px !important;
+}
+
+.el-dialog__footer {
+    padding: 16px 24px !important;
+    border-top: 1px solid #f1f5f9;
+    background-color: #f8fafc;
 }

@@ -163,18 +163,19 @@ onMounted(() => {
 
 <template>
     <div>
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex justify-between items-center mb-4">
             <div>
-                <h1 class="text-2xl font-semibold text-slate-800 m-0 mb-1">项目管理</h1>
-                <p class="text-sm text-slate-500 m-0">查看和管理您的所有项目进度</p>
+                <h1 class="text-3xl font-bold text-slate-800 m-0 mb-2 tracking-tight">项目管理</h1>
+                <p class="text-base text-slate-500 m-0 font-medium">查看和管理您的所有项目进度</p>
             </div>
-            <div class="flex gap-4 items-center">
-                <el-radio-group v-model="filterStatus" @change="currentPage = 1">
+            <div class="flex gap-4 items-center glass-panel p-1.5">
+                <el-radio-group v-model="filterStatus" @change="currentPage = 1" class="custom-radio-group">
                     <el-radio-button :value="1">进行中</el-radio-button>
                     <el-radio-button :value="2">已归档</el-radio-button>
                     <el-radio-button :value="0">全部</el-radio-button>
                 </el-radio-group>
-                <el-button type="primary" :icon="Plus" size="large" @click="handleCreateProject">创建新项目</el-button>
+                <div class="w-px h-6 bg-slate-200 mx-2"></div>
+                <el-button type="primary" :icon="Plus" size="default" class="!px-6 !h-[32px]" @click="handleCreateProject">创建新项目</el-button>
             </div>
         </div>
 
@@ -200,51 +201,50 @@ onMounted(() => {
 
         <el-row :gutter="20" v-else-if="projects.length > 0">
             <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4.8" v-for="project in projects" :key="project.id" class="mb-6">
-                <el-card
-                    :body-style="{ padding: '0px' }"
-                    shadow="hover"
-                    class="h-full border-none rounded-xl transition-all duration-500 flex flex-col cursor-pointer group hover:shadow-2xl hover:shadow-blue-500/20 relative overflow-hidden bg-white transform hover:-translate-y-2"
+                <div
+                    class="glass-card h-full transition-all duration-500 flex flex-col cursor-pointer group hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-2 relative overflow-hidden"
                     :class="{ 'grayscale opacity-80': project.status === 2 }"
                     @click="goToProjectDetail(project.id)">
                     <div
-                        class="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0"></div>
+                        class="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0"></div>
 
                     <!-- 归档标签 -->
                     <div v-if="project.status === 2" class="absolute top-3 right-3 z-20 bg-slate-800/80 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">已归档</div>
 
-                    <div class="h-40 relative bg-slate-200 overflow-hidden">
+                    <div class="h-40 relative bg-slate-100 overflow-hidden group-hover:shadow-inner transition-shadow duration-500">
                         <img v-if="project.img_cover" :src="project.img_cover" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                        <div v-else class="w-full h-full flex items-center justify-center text-slate-400 bg-slate-50">
-                            <el-icon size="48" class="transition-transform duration-500 group-hover:scale-110 group-hover:text-blue-400"><IconPicture /></el-icon>
+                        <div v-else class="w-full h-full flex items-center justify-center text-slate-300 bg-slate-100">
+                            <el-icon size="48" class="transition-transform duration-500 group-hover:scale-110 group-hover:text-blue-400/50"><IconPicture /></el-icon>
                         </div>
-                        <div class="absolute bottom-0 left-0 right-0 px-5 py-5 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                            <h3 class="text-white text-lg font-semibold m-0 whitespace-nowrap overflow-hidden text-ellipsis transform transition-transform duration-300 group-hover:translate-x-1">
+                        <div class="absolute bottom-0 left-0 right-0 px-5 py-5 bg-gradient-to-t from-black/60 via-black/30 to-transparent">
+                            <h3
+                                class="text-white text-lg font-bold m-0 whitespace-nowrap overflow-hidden text-ellipsis transform transition-transform duration-300 group-hover:translate-x-1 tracking-wide text-shadow-sm">
                                 {{ project.name }}
                             </h3>
                         </div>
                     </div>
-                    <div class="p-5 flex-1 flex flex-col relative z-10 bg-white/95 backdrop-blur-sm">
+                    <div class="p-5 flex-1 flex flex-col relative z-10">
                         <p class="text-sm text-slate-500 leading-relaxed mb-5 line-clamp-2 flex-1 transition-colors duration-300 group-hover:text-slate-600">
                             {{ project.description || "暂无项目描述..." }}
                         </p>
                         <div class="flex items-center border-t border-slate-100 pt-4 mt-auto">
                             <div class="flex-1 text-center group-hover:bg-blue-50/50 rounded-lg py-1 transition-colors duration-300">
-                                <div class="text-xs text-slate-400 mb-1">总问题数</div>
-                                <div class="text-lg font-bold text-blue-500">{{ project.issueCount }}</div>
+                                <div class="text-xs text-slate-400 mb-1 font-medium">总问题数</div>
+                                <div class="text-lg font-bold text-blue-600">{{ project.issueCount }}</div>
                             </div>
                             <div class="w-px h-[20px] bg-slate-200 mx-1"></div>
                             <div class="flex-1 text-center group-hover:bg-red-50/50 rounded-lg py-1 transition-colors duration-300">
-                                <div class="text-xs text-slate-400 mb-1">未解决</div>
+                                <div class="text-xs text-slate-400 mb-1 font-medium">未解决</div>
                                 <div class="text-lg font-bold text-red-500">{{ project.unresolvedIssueCount }}</div>
                             </div>
                             <div class="w-px h-[20px] bg-slate-200 mx-1"></div>
                             <div class="flex-1 text-center group-hover:bg-orange-50/50 rounded-lg py-1 transition-colors duration-300">
-                                <div class="text-xs text-slate-400 mb-1">我的待办</div>
+                                <div class="text-xs text-slate-400 mb-1 font-medium">我的待办</div>
                                 <div class="text-lg font-bold text-orange-500">{{ project.userIssueCount }}</div>
                             </div>
                         </div>
                     </div>
-                </el-card>
+                </div>
             </el-col>
         </el-row>
 

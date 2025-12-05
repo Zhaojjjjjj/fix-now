@@ -37,22 +37,19 @@ const getPageTitle = computed(() => {
 
 <template>
     <el-container class="h-screen flex flex-col bg-slate-50">
-        <el-header class="bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-white/10 h-[70px] flex items-center justify-between px-8 shadow-xl relative z-50">
-            <!-- 顶部光效 -->
-            <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"></div>
-
+        <el-header class="bg-white/80 backdrop-blur-md border-b border-slate-200 h-[70px] flex items-center justify-between px-8 shadow-sm relative z-50">
             <div class="flex items-center gap-8 relative z-10">
-                <div class="flex flex-col gap-0.5 cursor-pointer" @click="router.push('/')">
-                    <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200 m-0 tracking-wide">FixNow</h1>
+                <div class="flex flex-col gap-0.5 cursor-pointer group" @click="router.push('/')">
+                    <h1 class="text-2xl font-bold text-slate-800 m-0 tracking-tight group-hover:text-blue-600 transition-colors duration-300">FixNow</h1>
                 </div>
-                <h2 class="text-base font-medium text-slate-300 m-0 pl-8 border-l border-white/10">{{ getPageTitle }}</h2>
+                <h2 class="text-base font-medium text-slate-500 m-0 pl-8 border-l border-slate-200">{{ getPageTitle }}</h2>
             </div>
             <div class="flex items-center gap-4 relative z-10">
-                <div class="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-full backdrop-blur-md hover:bg-white/10 transition-colors duration-300" v-if="authStore.user">
-                    <el-avatar :size="32" :icon="UserFilled" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-2 border-white/20" />
-                    <span class="text-sm text-slate-200 font-medium pr-2">{{ authStore.user.nickname || authStore.user.username }}</span>
+                <div class="flex items-center gap-3 px-2 py-1.5 rounded-full hover:bg-slate-100 transition-colors duration-300 cursor-pointer" v-if="authStore.user">
+                    <el-avatar :size="32" :icon="UserFilled" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white ring-2 ring-white shadow-sm" />
+                    <span class="text-sm text-slate-700 font-medium px-2">{{ authStore.user.nickname || authStore.user.username }}</span>
                     <el-dropdown trigger="click">
-                        <span class="cursor-pointer text-slate-400 hover:text-white flex items-center transition-colors">
+                        <span class="cursor-pointer text-slate-400 hover:text-slate-600 flex items-center transition-colors">
                             <el-icon><Setting /></el-icon>
                         </span>
                         <template #dropdown>
@@ -71,7 +68,7 @@ const getPageTitle = computed(() => {
                 </div>
             </div>
         </el-header>
-        <el-main class="bg-[#f8fafc] p-6 flex-1 overflow-y-auto scroll-smooth relative">
+        <el-main class="bg-[#f8fafc] py-1 flex-1 overflow-y-auto scroll-smooth relative">
             <!-- 全局背景纹理 -->
             <div class="absolute inset-0 opacity-[0.015] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px"></div>
             <router-view />
@@ -79,4 +76,8 @@ const getPageTitle = computed(() => {
     </el-container>
 </template>
 
-<style scoped></style>
+<style scoped>
+:deep(.el-main) {
+    padding-bottom: 1px !important;
+}
+</style>
