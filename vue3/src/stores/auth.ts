@@ -34,11 +34,18 @@ export const useAuthStore = defineStore("auth", {
         async fetchUser() {
             if (this.isLoggedIn) {
                 try {
-                    const res: any = await api.get("/user/edit", { params: { _t: Date.now() } });
+                    // 添加时间戳避免缓存，确保获取最新数据
+                    const res: any = await api.get("/user/edit", {
+                        params: { _t: Date.now() },
+                        headers: { "Cache-Control": "no-cache" },
+                    });
                     if (res.code === 1) {
-                        this.user = res.data;
+                        // 确保响应式更新
+                        this.user = { ...res.data };
+                        console.log("用户信息已更新:", this.user);
                     }
                 } catch (e) {
+                    console.error("获取用户信息失败:", e);
                     this.logout();
                 }
             }

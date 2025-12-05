@@ -46,6 +46,9 @@ class User extends \app\model\AR
         'mobile'      => 'varchar',
     ];
 
+    // 追加属性到模型数组
+    protected $append = ['avatar'];
+
     public static function findOne($data = null)
     {
         if (is_numeric($data)) {

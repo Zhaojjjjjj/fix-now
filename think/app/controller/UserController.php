@@ -9,9 +9,14 @@ class UserController extends _Controller
     public function pwdAction()
     {
         if ($post = $this->request->post()) {
-            $user = $this->curUser;
+            // 获取User模型对象，而不是数组
+            $user = User::find(session('user')['id']);
+            
+            if (!$user) {
+                return $this->fail('用户不存在');
+            }
 
-            if ($user['pwd'] != $post['old_pwd']) {
+            if ($user->pwd != $post['old_pwd']) {
                 return $this->fail('旧密码错误');
             }
 
@@ -33,7 +38,17 @@ class UserController extends _Controller
         $row = User::findOrNew(session('user')['id']);
 
         if ($post = $this->request->post()) {
-            $row->save($post);
+            // 处理avatar字段映射到img_avatar
+            if (isset($post['avatar'])) {
+                $post['img_avatar'] = $post['avatar'];
+                unset($post['avatar']);
+            }
+            
+            // 只允许更新特定字段，防止恶意修改
+            $allowFields = ['nickname', 'img_avatar', 'mobile'];
+            $updateData = array_intersect_key($post, array_flip($allowFields));
+            
+            $row->save($updateData);
             
             // 更新session中的用户信息
             session('user', $row->toArray());
