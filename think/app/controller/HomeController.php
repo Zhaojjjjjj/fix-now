@@ -12,7 +12,8 @@ class HomeController extends _Controller
 {
     public function indexAction()
     {
-        return $this->view('index', ['layout' => false]);
+        // 使用 /home_index 明确指定读取 view/home_index.html 文件
+        return $this->view('/home_index', ['layout' => false]);
     }
 
     public function editAction()

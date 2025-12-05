@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "/api",
+    // 开发环境使用 /api 走代理，生产环境直接使用 / 访问后端
+    baseURL: import.meta.env.DEV ? "/api" : "/",
     timeout: 5000,
     withCredentials: true, // 允许携带cookie
 });
