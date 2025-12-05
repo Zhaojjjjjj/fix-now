@@ -481,20 +481,7 @@ const goBack = () => {
         <!-- 筛选区域 -->
         <el-card class="mb-3 border-none" shadow="never">
             <div class="flex justify-between items-start">
-                <el-form :inline="true" :model="filters" class="filter-form flex-1 grid grid-cols-4 gap-4">
-                    <el-form-item label="标题搜索" class="mr-0 w-full">
-                        <el-input v-model="filters.title" placeholder="输入标题关键字..." clearable />
-                    </el-form-item>
-                    <el-form-item label="指派给" class="mr-0 w-full">
-                        <el-select v-model="filters.cur_user_id" placeholder="全部" clearable filterable>
-                            <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
-                        </el-select>
-                    </el-form-item>
-                    <el-form-item label="报告人" class="mr-0 w-full">
-                        <el-select v-model="filters.user_id" placeholder="全部" clearable filterable>
-                            <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
-                        </el-select>
-                    </el-form-item>
+                <el-form :inline="true" :model="filters" label-width="80px" class="filter-form flex-1 grid grid-cols-4 gap-4">
                     <el-form-item label="状态" class="mr-0 w-full">
                         <el-select v-model="filters.status" placeholder="全部状态" clearable>
                             <el-option label="未修改" value="1" />
@@ -511,6 +498,23 @@ const goBack = () => {
                         </el-select>
                     </el-form-item>
 
+                    <el-form-item label="负责人" class="mr-0 w-full">
+                        <el-select v-model="filters.cur_user_id" placeholder="全部" clearable filterable>
+                            <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="Bug类型" class="mr-0 w-full">
+                        <el-select v-model="filters.bug_type" placeholder="全部类型" clearable>
+                            <el-option label="Bug" value="bug" />
+                            <el-option label="样式问题" value="style" />
+                            <el-option label="体验问题" value="experience" />
+                            <el-option label="产品设计" value="design" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="标题搜索" class="mr-0 w-full">
+                        <el-input v-model="filters.title" placeholder="输入标题关键字..." clearable />
+                    </el-form-item>
                     <template v-if="isFilterExpanded">
                         <el-form-item label="开发环境" class="mr-0 w-full">
                             <el-select v-model="filters.environment" placeholder="全部环境" clearable>
@@ -519,12 +523,9 @@ const goBack = () => {
                                 <el-option label="正式环境" value="prod" />
                             </el-select>
                         </el-form-item>
-                        <el-form-item label="Bug类型" class="mr-0 w-full">
-                            <el-select v-model="filters.bug_type" placeholder="全部类型" clearable>
-                                <el-option label="Bug" value="bug" />
-                                <el-option label="样式问题" value="style" />
-                                <el-option label="体验问题" value="experience" />
-                                <el-option label="产品设计" value="design" />
+                        <el-form-item label="报告人" class="mr-0 w-full">
+                            <el-select v-model="filters.user_id" placeholder="全部" clearable filterable>
+                                <el-option v-for="user in users" :key="user.id" :label="user.nickname" :value="user.id" />
                             </el-select>
                         </el-form-item>
                     </template>

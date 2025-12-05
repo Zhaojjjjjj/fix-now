@@ -2,7 +2,6 @@
 import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import api from "../api";
-import axios from "axios";
 import { Picture as IconPicture, Plus, FolderOpened } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
@@ -95,14 +94,14 @@ const handleLogoUpload = async (file: any) => {
 
     uploadingLogo.value = true;
     try {
-        const res: any = await axios.post("/think/upload/image", formData, {
+        const res: any = await api.post("/common/upload", formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
-        if (res.data.code === 1) {
-            projectForm.value.img_cover = res.data.data.url;
+        if (res.code === 1) {
+            projectForm.value.img_cover = res.data.url;
             ElMessage.success("Logo上传成功");
         } else {
-            ElMessage.error(res.data.msg || "Logo上传失败");
+            ElMessage.error(res.msg || "Logo上传失败");
         }
     } catch (e: any) {
         ElMessage.error(e.response?.data?.msg || "Logo上传失败");

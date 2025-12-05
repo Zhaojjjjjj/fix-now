@@ -42,7 +42,8 @@ const editorConfig = {
     placeholder: props.placeholder || "请输入内容...",
     MENU_CONF: {
         uploadImage: {
-            server: "/api/common/upload",
+            // 开发环境使用 /api 走代理，生产环境直接使用 / 访问后端
+            server: import.meta.env.DEV ? "/api/common/upload" : "/common/upload",
             fieldName: "file",
             maxFileSize: 5 * 1024 * 1024, // 5MB
             allowedFileTypes: ["image/*"],
